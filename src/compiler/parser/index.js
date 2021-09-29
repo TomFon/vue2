@@ -352,13 +352,16 @@ export function parse (
 
     chars (text: string, start: number, end: number) {
       if (!currentParent) {
+        //当前节点的父节点不存在的时候才调用
         if (process.env.NODE_ENV !== 'production') {
           if (text === template) {
+            // 没有父节点的文本节点，1.<template>hello world</template>
             warnOnce(
               'Component template requires a root element, rather than just text.',
               { start }
             )
           } else if ((text = text.trim())) {
+            //  2.<template><span>hello</span>world</template>
             warnOnce(
               `text "${text}" outside root element will be ignored.`,
               { start }
@@ -375,11 +378,15 @@ export function parse (
       ) {
         return
       }
+
       const children = currentParent.children
       if (inPre || text.trim()) {
+        //如果当前文本节点的父节点是style,script标签，那么则原封不动的保留原始文本,否则通过decodeHTMLCached进行解码
+        // <div>&gt</div>
         text = isTextTag(currentParent) ? text : decodeHTMLCached(text)
       } else if (!children.length) {
         // remove the whitespace-only node right after an opening tag
+        //去掉开始标签之后的空格
         text = ''
       } else if (whitespaceOption) {
         if (whitespaceOption === 'condense') {
@@ -400,6 +407,9 @@ export function parse (
         let res
         let child: ?ASTNode
         if (!inVPre && text !== ' ' && (res = parseText(text, delimiters))) {
+          // 当前文本节点不存在于使用 v-pre 指令的标签之内
+          // 当前文本节点不是空格字符
+          // 使用 parseText 函数成功解析当前文本节点的内容
           child = {
             type: 2,
             expression: res.expression,
@@ -829,7 +839,7 @@ function processAttrs (el) {
       el.hasBindings = true
       // modifiers
       // 获取指令的修饰符，是个对象
-      // 清楚v-bind @
+      // 清除v-bind @
       modifiers = parseModifiers(name.replace(dirRE, ''))
       // support .foo shorthand syntax for the .prop modifier
       if (process.env.VBIND_PROP_SHORTHAND && propBindRE.test(name)) {
@@ -923,14 +933,18 @@ function processAttrs (el) {
         }
         addHandler(el, name, value, modifiers, false, warn, list[i], isDynamic)
       } else { // normal directives
+        //v-text、v-html、v-show、v-cloak 以及 v-model 和其他自定义指令
         name = name.replace(dirRE, '')
         // parse arg
         const argMatch = name.match(argRE)
+        // 参数数组
         let arg = argMatch && argMatch[1]
         isDynamic = false
         if (arg) {
+          // 将参数字符串从 name 字符串中移除掉的
           name = name.slice(0, -(arg.length + 1))
           if (dynamicArgRE.test(arg)) {
+            //动态参数
             arg = arg.slice(1, -1)
             isDynamic = true
           }

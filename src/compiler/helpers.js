@@ -76,6 +76,7 @@ export function addHandler (
   range?: Range,
   dynamic?: boolean
 ) {
+  // 没有修饰符，此时会使用冻结的空对象 emptyObject 作为替代
   modifiers = modifiers || emptyObject
   // warn prevent and passive modifier
   /* istanbul ignore if */
@@ -97,6 +98,7 @@ export function addHandler (
     if (dynamic) {
       name = `(${name})==='click'?'contextmenu':(${name})`
     } else if (name === 'click') {
+      //如果事件名称是 click 并且使用了 right 修饰符，则会将事件名称重写为 contextmenu，同时使用 delete 操作符删除 modifiers.right 属性
       name = 'contextmenu'
       delete modifiers.right
     }
@@ -104,6 +106,7 @@ export function addHandler (
     if (dynamic) {
       name = `(${name})==='click'?'mouseup':(${name})`
     } else if (name === 'click') {
+      // 点击滚轮事件
       name = 'mouseup'
     }
   }
@@ -111,6 +114,7 @@ export function addHandler (
   // check capture modifier
   if (modifiers.capture) {
     delete modifiers.capture
+    //会把事件名称 'click' 修改为 '!click'
     name = prependModifierMarker('!', name, dynamic)
   }
   if (modifiers.once) {
@@ -126,8 +130,10 @@ export function addHandler (
   let events
   if (modifiers.native) {
     delete modifiers.native
+    // 如果 native 修饰符存在则会在元素描述对象上添加 el.nativeEvents 属性，初始值为一个空对象，并且 events 变量与 el.nativeEvents 属性具有相同的引用
     events = el.nativeEvents || (el.nativeEvents = {})
   } else {
+    //如果 native 属性不存在则会在元素描述对象上添加 el.events 属性，它的初始值也是一个空对象，此时 events 变量的引用将与 el.events 属性相同
     events = el.events || (el.events = {})
   }
 
@@ -139,11 +145,24 @@ export function addHandler (
   const handlers = events[name]
   /* istanbul ignore if */
   if (Array.isArray(handlers)) {
+    //  例如三个click事件
     important ? handlers.unshift(newHandler) : handlers.push(newHandler)
   } else if (handlers) {
+    // 例如两个click事件
     events[name] = important ? [newHandler, handlers] : [handlers, newHandler]
   } else {
+    //<div @click.once="handleClick"></div> 
+   // newHandler = {
+    //  value: 'handleClick',
+    //  modifiers: {} // 注意这里是空对象，因为 modifiers.once 修饰符被 delete 了
+   // }
     events[name] = newHandler
+   // el.events = {
+   //   '~click': {
+   //     value: 'handleClick',
+   //     modifiers: {}
+   //   }
+   // }
   }
 
   el.plain = false
