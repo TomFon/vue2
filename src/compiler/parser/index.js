@@ -652,6 +652,7 @@ function processSlotContent (el) {
   if (el.tag === 'template') {
     slotScope = getAndRemoveAttr(el, 'scope')
     /* istanbul ignore if */
+    // 在非生产环境下，如果 slotScope 变量存在，则说明 <template> 标签中使用了 scope 属性，但是这个属性已经在 2.5.0+ 的版本中被 slot-scope 属性替代了，所以现在更推荐使用 slot-scope 属性，好处是 slot-scope 属性不受限于 <template> 标签。
     if (process.env.NODE_ENV !== 'production' && slotScope) {
       warn(
         `the "scope" attribute for scoped slots have been deprecated and ` +
@@ -662,9 +663,17 @@ function processSlotContent (el) {
         true
       )
     }
+    // 如果存在scope就取其值
     el.slotScope = slotScope || getAndRemoveAttr(el, 'slot-scope')
   } else if ((slotScope = getAndRemoveAttr(el, 'slot-scope'))) {
     /* istanbul ignore if */
+    // 非生产添加会检测是否使用了v-for
+    // 由于 v-for 具有更高的优先级，所以 v-for 绑定的状态将会是父组件作用域的状态，而不是子组件通过作用域插槽传递的状态
+    // eg <div slot-scope="slotProps" v-for="item of slotProps.list"></div>
+    // <template slot-scope="slotProps">
+    //  <div v-for="item of slotProps.list"></div>
+    // </template> 
+    // 用template 更清晰
     if (process.env.NODE_ENV !== 'production' && el.attrsMap['v-for']) {
       warn(
         `Ambiguous combined usage of slot-scope and v-for on <${el.tag}> ` +
@@ -680,6 +689,7 @@ function processSlotContent (el) {
   // slot="xxx"
   const slotTarget = getBindingAttr(el, 'slot')
   if (slotTarget) {
+    // <div slot></div>  slotTarget = '"default"'
     el.slotTarget = slotTarget === '""' ? '"default"' : slotTarget
     el.slotTargetDynamic = !!(el.attrsMap[':slot'] || el.attrsMap['v-bind:slot'])
     // preserve slot as an attribute for native shadow DOM compat
@@ -784,8 +794,10 @@ function getSlotName (binding) {
 // handle <slot/> outlets
 function processSlotOutlet (el) {
   if (el.tag === 'slot') {
+    // 处理slot标签
     el.slotName = getBindingAttr(el, 'name')
     if (process.env.NODE_ENV !== 'production' && el.key) {
+      // slot标签不能有key值
       warn(
         `\`key\` does not work on <slot> because slots are abstract outlets ` +
         `and can possibly expand into multiple elements. ` +
@@ -816,17 +828,23 @@ function processAttrs (el) {
       // mark element as dynamic
       el.hasBindings = true
       // modifiers
+      // 获取指令的修饰符，是个对象
+      // 清楚v-bind @
       modifiers = parseModifiers(name.replace(dirRE, ''))
       // support .foo shorthand syntax for the .prop modifier
       if (process.env.VBIND_PROP_SHORTHAND && propBindRE.test(name)) {
         (modifiers || (modifiers = {})).prop = true
         name = `.` + name.slice(1).replace(modifierRE, '')
       } else if (modifiers) {
+        // 清掉修饰符
         name = name.replace(modifierRE, '')
       }
+      //解析 v-bind 指令
       if (bindRE.test(name)) { // v-bind
+        // 请除v-bind 符号
         name = name.replace(bindRE, '')
         value = parseFilters(value)
+        //动态参数v-pin:[direction]  isDynamic = [direction] 
         isDynamic = dynamicArgRE.test(name)
         if (isDynamic) {
           name = name.slice(1, -1)
@@ -840,13 +858,17 @@ function processAttrs (el) {
           )
         }
         if (modifiers) {
+          // 处理修饰符prop
           if (modifiers.prop && !isDynamic) {
             name = camelize(name)
             if (name === 'innerHtml') name = 'innerHTML'
           }
+          // 处理修饰符camel 驼峰化
+          // 使用场景，例子：直接获取被浏览器处理过的 <svg :viewbox="viewBox"></svg> 浏览器在渲染时会认为这是一个自定义属性，对于任何自定义属性浏览器都会把它渲染为小写的形式
           if (modifiers.camel && !isDynamic) {
             name = camelize(name)
           }
+          // some-prop.sync <==等价于==> :some-prop + @update:someProp
           if (modifiers.sync) {
             syncGen = genAssignmentCode(value, `$event`)
             if (!isDynamic) {
@@ -888,6 +910,7 @@ function processAttrs (el) {
         if ((modifiers && modifiers.prop) || (
           !el.component && platformMustUseProp(el.tag, el.attrsMap.type, name)
         )) {
+          //元素描述对象的 el.props 数组中存储的并不是组件概念中的 prop，而是原生DOM对象的属性
           addProp(el, name, value, list[i], isDynamic)
         } else {
           addAttr(el, name, value, list[i], isDynamic)
@@ -956,8 +979,10 @@ function checkInFor (el: ASTElement): boolean {
 }
 
 function parseModifiers (name: string): Object | void {
+  // v-bind:some-prop.sync
   const match = name.match(modifierRE)
   if (match) {
+    // [".sync"]
     const ret = {}
     match.forEach(m => { ret[m.slice(1)] = true })
     return ret
