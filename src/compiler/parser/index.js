@@ -134,6 +134,7 @@ export function parse (
   function closeElement (element) {
     trimEndingWhitespace(element)
     if (!inVPre && !element.processed) {
+      // v-text、v-html、v-show、v-on、v-bind、v-model、v-cloak 处理这些指令
       element = processElement(element, options)
     }
     // tree management

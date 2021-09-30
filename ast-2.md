@@ -327,3 +327,108 @@ start (tag, attrs, unary, start, end) {
       closeElement(element)
     },
 ```
+
+
+
+### chars 
+chars 函数主要是处理文本节点
+
+```javascript
+chars (text: string, start: number, end: number) {
+      if (!currentParent) {
+        //当前节点的父节点不存在的时候才调用
+        if (process.env.NODE_ENV !== 'production') {
+          if (text === template) {
+            // 没有父节点的文本节点，1.<template>hello world</template>
+            warnOnce(
+              'Component template requires a root element, rather than just text.',
+              { start }
+            )
+          } else if ((text = text.trim())) {
+            //  2.<template><span>hello</span>world</template>
+            warnOnce(
+              `text "${text}" outside root element will be ignored.`,
+              { start }
+            )
+          }
+        }
+        return
+      }
+      // IE textarea placeholder bug
+      /* istanbul ignore if */
+      if (isIE &&
+        currentParent.tag === 'textarea' &&
+        currentParent.attrsMap.placeholder === text
+      ) {
+        return
+      }
+
+      const children = currentParent.children
+      if (inPre || text.trim()) {
+        //如果当前文本节点的父节点是style,script标签，那么则原封不动的保留原始文本,否则通过decodeHTMLCached进行解码
+        // <div>&gt</div>
+        text = isTextTag(currentParent) ? text : decodeHTMLCached(text)
+      } else if (!children.length) {
+        // remove the whitespace-only node right after an opening tag
+        //去掉开始标签之后的空格
+        text = ''
+      } else if (whitespaceOption) {
+        if (whitespaceOption === 'condense') {
+          // in condense mode, remove the whitespace node if it contains
+          // line break, otherwise condense to a single space
+          text = lineBreakRE.test(text) ? '' : ' '
+        } else {
+          text = ' '
+        }
+      } else {
+        text = preserveWhitespace ? ' ' : ''
+      }
+      if (text) {
+        if (!inPre && whitespaceOption === 'condense') {
+          // condense consecutive whitespaces into single space
+          text = text.replace(whitespaceRE, ' ')
+        }
+        let res
+        let child: ?ASTNode
+        if (!inVPre && text !== ' ' && (res = parseText(text, delimiters))) {
+          // 当前文本节点不存在于使用 v-pre 指令的标签之内
+          // 当前文本节点不是空格字符
+          // 使用 parseText 函数成功解析当前文本节点的内容
+          child = {
+            type: 2,
+            expression: res.expression,
+            tokens: res.tokens,
+            text
+          }
+        } else if (text !== ' ' || !children.length || children[children.length - 1].text !== ' ') {
+          child = {
+            type: 3,
+            text
+          }
+        }
+        if (child) {
+          if (process.env.NODE_ENV !== 'production' && options.outputSourceRange) {
+            child.start = start
+            child.end = end
+          }
+          children.push(child)
+        }
+      }
+    }
+```
+
+
+```javascript
+module.exports = {
+    chainWebpack: config => {
+        config.module
+          .rule('vue')
+          .use('vue-loader')
+          .loader('vue-loader')
+          .tap(options => {
+            options.compilerOptions.preserveWhitespace = true
+            return options
+          })
+    }
+}
+```

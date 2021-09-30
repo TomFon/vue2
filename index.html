@@ -10,8 +10,17 @@
    <script type="module">
      import Vue from './dist/vue.esm.browser.js'
      new Vue({
+       data: function() {
+          return {
+            message: 1
+          }
+       },
        el: '#app',
-       template: `<div id="test">123</div>`
+       template: `<div id="test" :message.prop="message">    
+         <p>13
+          2</p>
+         <p>456</p>
+        </div>`
      })
    </script>
 </body>

@@ -2881,6 +2881,7 @@ function addHandler (
   range,
   dynamic
 ) {
+  // 没有修饰符，此时会使用冻结的空对象 emptyObject 作为替代
   modifiers = modifiers || emptyObject;
   // warn prevent and passive modifier
   /* istanbul ignore if */
@@ -2902,6 +2903,7 @@ function addHandler (
     if (dynamic) {
       name = "(" + name + ")==='click'?'contextmenu':(" + name + ")";
     } else if (name === 'click') {
+      //如果事件名称是 click 并且使用了 right 修饰符，则会将事件名称重写为 contextmenu，同时使用 delete 操作符删除 modifiers.right 属性
       name = 'contextmenu';
       delete modifiers.right;
     }
@@ -2909,6 +2911,7 @@ function addHandler (
     if (dynamic) {
       name = "(" + name + ")==='click'?'mouseup':(" + name + ")";
     } else if (name === 'click') {
+      // 点击滚轮事件
       name = 'mouseup';
     }
   }
@@ -2916,6 +2919,7 @@ function addHandler (
   // check capture modifier
   if (modifiers.capture) {
     delete modifiers.capture;
+    //会把事件名称 'click' 修改为 '!click'
     name = prependModifierMarker('!', name, dynamic);
   }
   if (modifiers.once) {
@@ -2931,8 +2935,10 @@ function addHandler (
   var events;
   if (modifiers.native) {
     delete modifiers.native;
+    // 如果 native 修饰符存在则会在元素描述对象上添加 el.nativeEvents 属性，初始值为一个空对象，并且 events 变量与 el.nativeEvents 属性具有相同的引用
     events = el.nativeEvents || (el.nativeEvents = {});
   } else {
+    //如果 native 属性不存在则会在元素描述对象上添加 el.events 属性，它的初始值也是一个空对象，此时 events 变量的引用将与 el.events 属性相同
     events = el.events || (el.events = {});
   }
 
@@ -2944,11 +2950,24 @@ function addHandler (
   var handlers = events[name];
   /* istanbul ignore if */
   if (Array.isArray(handlers)) {
+    //  例如三个click事件
     important ? handlers.unshift(newHandler) : handlers.push(newHandler);
   } else if (handlers) {
+    // 例如两个click事件
     events[name] = important ? [newHandler, handlers] : [handlers, newHandler];
   } else {
+    //<div @click.once="handleClick"></div> 
+   // newHandler = {
+    //  value: 'handleClick',
+    //  modifiers: {} // 注意这里是空对象，因为 modifiers.once 修饰符被 delete 了
+   // }
     events[name] = newHandler;
+   // el.events = {
+   //   '~click': {
+   //     value: 'handleClick',
+   //     modifiers: {}
+   //   }
+   // }
   }
 
   el.plain = false;
@@ -2972,10 +2991,13 @@ function getBindingAttr (
     getAndRemoveAttr(el, ':' + name) ||
     getAndRemoveAttr(el, 'v-bind:' + name);
   if (dynamicValue != null) {
+    //绑定属性
     return parseFilters(dynamicValue)
   } else if (getStatic !== false) {
+    // 绑定属性不存在，就尝试获取非绑定属性值
     var staticValue = getAndRemoveAttr(el, name);
     if (staticValue != null) {
+      // JSON.stringify 能够保证对于非绑定的属性来讲，总是会将该属性的值作为字符串处理,而不是变量或表达式。
       return JSON.stringify(staticValue)
     }
   }
@@ -3624,31 +3646,48 @@ function parse (
   template,
   options
 ) {
+  // warn 是个函数 打印警告信息
   warn$1 = options.warn || baseWarn;
-
+  // isPreTag 是个函数，用来判断便签是否是pre
   platformIsPreTag = options.isPreTag || no;
+  // 用来判断元素是否需要需要绑定props 
   platformMustUseProp = options.mustUseProp || no;
+  // 该函数是一个编译器选项，其作用是用来获取元素(标签)的命名空间
   platformGetTagNamespace = options.getTagNamespace || no;
+  // 检查给定的标签是否是保留的标签
   var isReservedTag = options.isReservedTag || no;
+
   maybeComponent = function (el) { return !!(
     el.component ||
     el.attrsMap[':is'] ||
     el.attrsMap['v-bind:is'] ||
     !(el.attrsMap.is ? isReservedTag(el.attrsMap.is) : isReservedTag(el.tag))
   ); };
+
+  // 跨平台
   transforms = pluckModuleFunction(options.modules, 'transformNode');
   preTransforms = pluckModuleFunction(options.modules, 'preTransformNode');
   postTransforms = pluckModuleFunction(options.modules, 'postTransformNode');
-
+  
+  // 插值符号, {{}}
   delimiters = options.delimiters;
 
+  // 存放标签的栈
   var stack = [];
+  // 告诉编译器在编译 html 字符串时保留标签之间的的空格
   var preserveWhitespace = options.preserveWhitespace !== false;
+
+  //  处理换行符的规则
   var whitespaceOption = options.whitespace;
+  // 最终返回的结果
   var root;
+  // 栈顶元素 即是stack的最后一项
   var currentParent;
+  // 变量用来标识当前解析的标签是否在拥有 v-pre 的标签之内  例如 <div v-pre><span></span></div>
   var inVPre = false;
+  //用来标识当前正在解析的标签是否在 <pre></pre> 标签之内 例如 <pre><span></span></pre>
   var inPre = false;
+  // 只警告一次的表示
   var warned = false;
 
   function warnOnce (msg, range) {
@@ -3657,7 +3696,7 @@ function parse (
       warn$1(msg, range);
     }
   }
-
+  // 每当遇到一个标签的结束标签时，或遇到一元标签时都会调用该方法“闭合”标签
   function closeElement (element) {
     trimEndingWhitespace(element);
     if (!inVPre && !element.processed) {
@@ -3665,8 +3704,10 @@ function parse (
     }
     // tree management
     if (!stack.length && element !== root) {
+      // 栈为空 并且当前元素不等于根元素，就代表根元素不止一个
       // allow root elements with v-if, v-else-if and v-else
       if (root.if && (element.elseif || element.else)) {
+        // 根元素在v-if v-else 情况下是合法的
         {
           checkRootConstraints(element);
         }
@@ -3683,7 +3724,9 @@ function parse (
         );
       }
     }
+    // 父节点存在，并且当前节点非禁止的
     if (currentParent && !element.forbidden) {
+      // 当前节点存在else-if else
       if (element.elseif || element.else) {
         processIfConditions(element, currentParent);
       } else {
@@ -3691,6 +3734,7 @@ function parse (
           // scoped slot
           // keep it in the children list so that v-else(-if) conditions can
           // find it as the prev node.
+          // 如果一个元素使用了 slot-scope 特性，那么该元素的描述对象会被添加到父级元素的 scopedSlots 对象下
           var name = element.slotTarget || '"default"'
           ;(currentParent.scopedSlots || (currentParent.scopedSlots = {}))[name] = element;
         }
@@ -3761,6 +3805,8 @@ function parse (
     start: function start (tag, attrs, unary, start$1, end) {
       // check namespace.
       // inherit parent ns if there is one
+      // 如果父节点存在，并且父节点有命名空间，则去父节点的命名空间
+      // platformGetTagNamespace 函数只会获取 svg 和 math 这两个标签的命名空间，但这两个标签的所有子标签都会继承它们两个的命名空间。对于其他标签则不存在命名空间。
       var ns = (currentParent && currentParent.ns) || platformGetTagNamespace(tag);
 
       // handle IE svg bug
@@ -3773,7 +3819,7 @@ function parse (
       if (ns) {
         element.ns = ns;
       }
-
+      // 开发环境的话，就记录开始开始标签的开始与结束位置
       {
         if (options.outputSourceRange) {
           element.start = start$1;
@@ -3783,6 +3829,7 @@ function parse (
             return cumulated
           }, {});
         }
+        // 非法属性名就抛出错误
         attrs.forEach(function (attr) {
           if (invalidAttributeRE.test(attr.name)) {
             warn$1(
@@ -3796,7 +3843,7 @@ function parse (
           }
         });
       }
-
+      // 如果当前标签是被禁止的，并且在非服务端渲染的情况下
       if (isForbiddenTag(element) && !isServerRendering()) {
         element.forbidden = true;
         warn$1(
@@ -3808,31 +3855,44 @@ function parse (
       }
 
       // apply pre-transforms
+      // preTransforms 是个数组，数组的每一项就是函数，preTransforms 数组中的那些函数与 process* 系列函数唯一的区别就是平台化的区分即可。
       for (var i = 0; i < preTransforms.length; i++) {
         element = preTransforms[i](element, options) || element;
       }
-
+      // 判断当前元素是否在拥有v-pre属性的标签内
       if (!inVPre) {
         processPre(element);
         if (element.pre) {
+          // 意味着 后续的所有解析工作都处于 v-pre 环境下，编译器会跳过拥有 v-pre 指令元素以及其子元素的编译过程
           inVPre = true;
         }
       }
+      // 如果当前的元素是pre标签
       if (platformIsPreTag(element.tag)) {
+        // 实际上 inPre 变量与 inVPre 变量的作用相同，都是用来作为一个标识，只不过 inPre 变量标识着当前解析环境是否在 <pre> 标签内
+        // <pre> 标签会对其所包含的 html 字符实体进行解码
+        // <pre> 标签会保留 html 字符串编写时的空白
         inPre = true;
       }
       if (inVPre) {
+        // 对于使用了 v-pre 指令的标签及其子代标签，它们的任何属性都将会被作为原始属性处理
+        // 经过 processRawAttrs 函数的处理，会在元素的描述对象上添加 element.attrs 属性，它与 element.attrsList 数组结构相同，不同的是 element.attrs 数组中每个对象的 value 值会经过 JSON.stringify 函数处理。
         processRawAttrs(element);
       } else if (!element.processed) {
         // structural directives
+        // element.processed 它标识着当前元素是否已经被解析过了, 在元素描述对象应用 preTransforms 数组中的处理函数时被添加的
+        // 处理for循环
         processFor(element);
+        // 处理if
         processIf(element);
+        // 处理once
         processOnce(element);
       }
 
       if (!root) {
         root = element;
         {
+          // 根节点不能是slot template v-for
           checkRootConstraints(root);
         }
       }
@@ -3858,13 +3918,16 @@ function parse (
 
     chars: function chars (text, start, end) {
       if (!currentParent) {
+        //当前节点的父节点不存在的时候才调用
         {
           if (text === template) {
+            // 没有父节点的文本节点，1.<template>hello world</template>
             warnOnce(
               'Component template requires a root element, rather than just text.',
               { start: start }
             );
           } else if ((text = text.trim())) {
+            //  2.<template><span>hello</span>world</template>
             warnOnce(
               ("text \"" + text + "\" outside root element will be ignored."),
               { start: start }
@@ -3881,11 +3944,15 @@ function parse (
       ) {
         return
       }
+
       var children = currentParent.children;
       if (inPre || text.trim()) {
+        //如果当前文本节点的父节点是style,script标签，那么则原封不动的保留原始文本,否则通过decodeHTMLCached进行解码
+        // <div>&gt</div>
         text = isTextTag(currentParent) ? text : decodeHTMLCached(text);
       } else if (!children.length) {
         // remove the whitespace-only node right after an opening tag
+        //去掉开始标签之后的空格
         text = '';
       } else if (whitespaceOption) {
         if (whitespaceOption === 'condense') {
@@ -3906,6 +3973,9 @@ function parse (
         var res;
         var child;
         if (!inVPre && text !== ' ' && (res = parseText(text, delimiters))) {
+          // 当前文本节点不存在于使用 v-pre 指令的标签之内
+          // 当前文本节点不是空格字符
+          // 使用 parseText 函数成功解析当前文本节点的内容
           child = {
             type: 2,
             expression: res.expression,
@@ -3978,10 +4048,12 @@ function processElement (
   element,
   options
 ) {
+  // 处理key
   processKey(element);
 
   // determine whether this is a plain element after
   // removing structural attributes
+  // 标签没有使用key属性，并且没有scopedSlots 以及 attrsList为空，静态优化时使用
   element.plain = (
     !element.key &&
     !element.scopedSlots &&
@@ -4003,6 +4075,7 @@ function processKey (el) {
   var exp = getBindingAttr(el, 'key');
   if (exp) {
     {
+      // key 属性不能被应用到 <template> 标签。
       if (el.tag === 'template') {
         warn$1(
           "<template> cannot be keyed. Place the key on real elements instead.",
@@ -4012,6 +4085,7 @@ function processKey (el) {
       if (el.for) {
         var iterator = el.iterator2 || el.iterator1;
         var parent = el.parent;
+        // 检测transition-group的子节点的key不能使用index
         if (iterator && iterator === exp && parent && parent.tag === 'transition-group') {
           warn$1(
             "Do not use v-for index as key on <transition-group> children, " +
@@ -4030,6 +4104,7 @@ function processRef (el) {
   var ref = getBindingAttr(el, 'ref');
   if (ref) {
     el.ref = ref;
+    // 该属性是一个布尔值，标识着这个使用了 ref 属性的标签是否存在于 v-for 指令之内
     el.refInFor = checkInFor(el);
   }
 }
@@ -4052,17 +4127,20 @@ function processFor (el) {
 
 
 function parseFor (exp) {
+  
   var inMatch = exp.match(forAliasRE);
   if (!inMatch) { return }
+  // inMatch = [ '(obj,key,index) in list','(obj,key,index)','list']
   var res = {};
   res.for = inMatch[2].trim();
   var alias = inMatch[1].trim().replace(stripParensRE, '');
+  // alias = obj,key,index
   var iteratorMatch = alias.match(forIteratorRE);
   if (iteratorMatch) {
-    res.alias = alias.replace(forIteratorRE, '').trim();
-    res.iterator1 = iteratorMatch[1].trim();
+    res.alias = alias.replace(forIteratorRE, '').trim(); // obj
+    res.iterator1 = iteratorMatch[1].trim(); // key
     if (iteratorMatch[2]) {
-      res.iterator2 = iteratorMatch[2].trim();
+      res.iterator2 = iteratorMatch[2].trim(); // index
     }
   } else {
     res.alias = alias;
@@ -4074,6 +4152,7 @@ function processIf (el) {
   var exp = getAndRemoveAttr(el, 'v-if');
   if (exp) {
     el.if = exp;
+    // el.ifConditions = {exp: exp,block:el}
     addIfCondition(el, {
       exp: exp,
       block: el
@@ -4144,6 +4223,7 @@ function processSlotContent (el) {
   if (el.tag === 'template') {
     slotScope = getAndRemoveAttr(el, 'scope');
     /* istanbul ignore if */
+    // 在非生产环境下，如果 slotScope 变量存在，则说明 <template> 标签中使用了 scope 属性，但是这个属性已经在 2.5.0+ 的版本中被 slot-scope 属性替代了，所以现在更推荐使用 slot-scope 属性，好处是 slot-scope 属性不受限于 <template> 标签。
     if (slotScope) {
       warn$1(
         "the \"scope\" attribute for scoped slots have been deprecated and " +
@@ -4154,9 +4234,17 @@ function processSlotContent (el) {
         true
       );
     }
+    // 如果存在scope就取其值
     el.slotScope = slotScope || getAndRemoveAttr(el, 'slot-scope');
   } else if ((slotScope = getAndRemoveAttr(el, 'slot-scope'))) {
     /* istanbul ignore if */
+    // 非生产添加会检测是否使用了v-for
+    // 由于 v-for 具有更高的优先级，所以 v-for 绑定的状态将会是父组件作用域的状态，而不是子组件通过作用域插槽传递的状态
+    // eg <div slot-scope="slotProps" v-for="item of slotProps.list"></div>
+    // <template slot-scope="slotProps">
+    //  <div v-for="item of slotProps.list"></div>
+    // </template> 
+    // 用template 更清晰
     if (el.attrsMap['v-for']) {
       warn$1(
         "Ambiguous combined usage of slot-scope and v-for on <" + (el.tag) + "> " +
@@ -4172,6 +4260,7 @@ function processSlotContent (el) {
   // slot="xxx"
   var slotTarget = getBindingAttr(el, 'slot');
   if (slotTarget) {
+    // <div slot></div>  slotTarget = '"default"'
     el.slotTarget = slotTarget === '""' ? '"default"' : slotTarget;
     el.slotTargetDynamic = !!(el.attrsMap[':slot'] || el.attrsMap['v-bind:slot']);
     // preserve slot as an attribute for native shadow DOM compat
@@ -4280,8 +4369,10 @@ function getSlotName (binding) {
 // handle <slot/> outlets
 function processSlotOutlet (el) {
   if (el.tag === 'slot') {
+    // 处理slot标签
     el.slotName = getBindingAttr(el, 'name');
     if (el.key) {
+      // slot标签不能有key值
       warn$1(
         "`key` does not work on <slot> because slots are abstract outlets " +
         "and can possibly expand into multiple elements. " +
@@ -4312,14 +4403,20 @@ function processAttrs (el) {
       // mark element as dynamic
       el.hasBindings = true;
       // modifiers
+      // 获取指令的修饰符，是个对象
+      // 清除v-bind @
       modifiers = parseModifiers(name.replace(dirRE, ''));
       // support .foo shorthand syntax for the .prop modifier
       if (modifiers) {
+        // 清掉修饰符
         name = name.replace(modifierRE, '');
       }
+      //解析 v-bind 指令
       if (bindRE.test(name)) { // v-bind
+        // 请除v-bind 符号
         name = name.replace(bindRE, '');
         value = parseFilters(value);
+        //动态参数v-pin:[direction]  isDynamic = [direction] 
         isDynamic = dynamicArgRE.test(name);
         if (isDynamic) {
           name = name.slice(1, -1);
@@ -4332,13 +4429,17 @@ function processAttrs (el) {
           );
         }
         if (modifiers) {
+          // 处理修饰符prop
           if (modifiers.prop && !isDynamic) {
             name = camelize(name);
             if (name === 'innerHtml') { name = 'innerHTML'; }
           }
+          // 处理修饰符camel 驼峰化
+          // 使用场景，例子：直接获取被浏览器处理过的 <svg :viewbox="viewBox"></svg> 浏览器在渲染时会认为这是一个自定义属性，对于任何自定义属性浏览器都会把它渲染为小写的形式
           if (modifiers.camel && !isDynamic) {
             name = camelize(name);
           }
+          // some-prop.sync <==等价于==> :some-prop + @update:someProp
           if (modifiers.sync) {
             syncGen = genAssignmentCode(value, "$event");
             if (!isDynamic) {
@@ -4380,6 +4481,7 @@ function processAttrs (el) {
         if ((modifiers && modifiers.prop) || (
           !el.component && platformMustUseProp(el.tag, el.attrsMap.type, name)
         )) {
+          //元素描述对象的 el.props 数组中存储的并不是组件概念中的 prop，而是原生DOM对象的属性
           addProp(el, name, value, list[i], isDynamic);
         } else {
           addAttr(el, name, value, list[i], isDynamic);
@@ -4392,14 +4494,18 @@ function processAttrs (el) {
         }
         addHandler(el, name, value, modifiers, false, warn$1, list[i], isDynamic);
       } else { // normal directives
+        //v-text、v-html、v-show、v-cloak 以及 v-model 和其他自定义指令
         name = name.replace(dirRE, '');
         // parse arg
         var argMatch = name.match(argRE);
+        // 参数数组
         var arg = argMatch && argMatch[1];
         isDynamic = false;
         if (arg) {
+          // 将参数字符串从 name 字符串中移除掉的
           name = name.slice(0, -(arg.length + 1));
           if (dynamicArgRE.test(arg)) {
+            //动态参数
             arg = arg.slice(1, -1);
             isDynamic = true;
           }
@@ -4437,6 +4543,7 @@ function processAttrs (el) {
 
 function checkInFor (el) {
   var parent = el;
+  // 从当前元素的描述对象开始，逐层向父级节点遍历，直到根节点为止，如果发现某标签的元素描述对象的 for 属性不为 undefined
   while (parent) {
     if (parent.for !== undefined) {
       return true
@@ -4447,8 +4554,10 @@ function checkInFor (el) {
 }
 
 function parseModifiers (name) {
+  // v-bind:some-prop.sync
   var match = name.match(modifierRE);
   if (match) {
+    // [".sync"]
     var ret = {};
     match.forEach(function (m) { ret[m.slice(1)] = true; });
     return ret
