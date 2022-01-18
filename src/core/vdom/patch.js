@@ -69,8 +69,10 @@ function createKeyToOldIdx (children, beginIdx, endIdx) {
 
 export function createPatchFunction (backend) {
   let i, j
+  // 钩子汇总
   const cbs = {}
-
+  // modules 定义了一些模块的钩子函数，例如class ，style
+  // nodeOps 定义了操作dom的一些方法
   const { modules, nodeOps } = backend
 
   for (i = 0; i < hooks.length; ++i) {
@@ -81,7 +83,6 @@ export function createPatchFunction (backend) {
       }
     }
   }
-
   function emptyNodeAt (elm) {
     return new VNode(nodeOps.tagName(elm).toLowerCase(), {}, [], undefined, elm)
   }
@@ -351,6 +352,7 @@ export function createPatchFunction (backend) {
       if (isDef(i = data.hook) && isDef(i = i.destroy)) i(vnode)
       for (i = 0; i < cbs.destroy.length; ++i) cbs.destroy[i](vnode)
     }
+    // 递归调用child destory的钩子
     if (isDef(i = vnode.children)) {
       for (j = 0; j < vnode.children.length; ++j) {
         invokeDestroyHook(vnode.children[j])
@@ -699,6 +701,7 @@ export function createPatchFunction (backend) {
 
   return function patch (oldVnode, vnode, hydrating, removeOnly) {
     if (isUndef(vnode)) {
+      // 没有新vnode，只有旧vnode，就会触发destory钩子
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
       return
     }
