@@ -3,23 +3,94 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="./dist/vue.js"></script>
   <title>Document</title>
 </head>
 <body>
    <div id="app"></div>
    <script type="module">
-     import Vue from './dist/vue.esm.browser.js'
+   //  import Vue from './dist/vue.esm.browser.js'
+     Vue.config.performance = true
+     const Child = {
+       inject: {
+          parentName: {from: 'name'}
+       },
+       props: ['message'],
+       template: `<p>message:{{message}}{{typeof parentName}}</p>`,
+       mounted(){
+        //  setTimeout(()=>{
+        //      let div = document.createElement('div')
+        //      div.textContent = JSON.stringify(this.parentName)
+        //      document.body.append(div)
+        //  },2000)
+       }
+     }
+     class Model {
+        constructor() {
+          this.foo = '123'
+          this._bar = 'ltf'
+        }
+        get bar() {
+          return this._bar;
+        }
+        set bar(newvalue) {
+          this._bar = newvalue;
+        }
+      }
+     const test = {
+       c: '2222'
+     }
      new Vue({
-       data: function() {
+      //  data: function() {
+      //     return {
+      //       message: {name:1},
+      //     }
+      //  },
+      data: function() {
+        return {
+          message: Object.seal({a:'1'})
+        }
+      },
+       el: '#app',
+       mounted(){
+        //  Vue.set(this.message,'age',10)
+         setTimeout(()=>{
+          this.message.a = 20
+         },1000)
+       // this.$set(this.message,'bar','liangtengfeng1')
+
+        // setTimeout(()=>{
+        //    console.log('helo')
+        // },0)
+        // this.$nextTick(() => { console.log(1) })
+    
+        // Promise.resolve('test').then((res)=>{
+        //   console.log(res,'res')
+        // })
+        // this.$nextTick(() => { console.log(2) })
+        // this.$nextTick(() => { console.log(3) })
+        // this.$nextTick().then(res=>{
+        //   console.log(res,'--')
+        // })
+       },
+       watch:{
+          // 'message': function(newVal){
+          //     console.log(newVal,'message发生变')
+          // },
+          // 'message.age': function(newVal){
+          //   console.log(newVal,'age变化了')
+          // }
+       },
+       components: {
+        Child
+       },
+       provide: function() {
           return {
-            message: 1
+            name: test
           }
        },
-       el: '#app',
-       template: `<div id="test" :message.prop="message">    
-         <p>13
-          2</p>
-         <p>456</p>
+       template: `<div id="test">    
+            <Child :message="message"/>
         </div>`
      })
    </script>
