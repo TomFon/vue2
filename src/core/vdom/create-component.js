@@ -108,9 +108,9 @@ export function createComponent (
   if (isUndef(Ctor)) {
     return
   }
-
+  // 父构建函数,例如Vue
   const baseCtor = context.$options._base
-
+  // 全局组件的时候，Ctor 为vue 构造函数
   // plain options object: turn it into a constructor
   if (isObject(Ctor)) {
     Ctor = baseCtor.extend(Ctor)
@@ -124,7 +124,7 @@ export function createComponent (
     }
     return
   }
-
+  // 异步组件
   // async component
   let asyncFactory
   if (isUndef(Ctor.cid)) {
@@ -145,11 +145,10 @@ export function createComponent (
   }
 
   data = data || {}
-
   // resolve constructor options in case global mixins are applied after
   // component constructor creation
   resolveConstructorOptions(Ctor)
-
+  // 数据双向绑定
   // transform component v-model data into props & events
   if (isDef(data.model)) {
     transformModel(Ctor.options, data)
@@ -158,6 +157,7 @@ export function createComponent (
   // extract props
   const propsData = extractPropsFromVNodeData(data, Ctor, tag)
 
+  // 函数式组件
   // functional component
   if (isTrue(Ctor.options.functional)) {
     return createFunctionalComponent(Ctor, propsData, data, context, children)

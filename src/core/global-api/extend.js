@@ -70,10 +70,12 @@ export function initExtend (Vue: GlobalAPI) {
     // keep a reference to the super options at extension time.
     // later at instantiation we can check if Super's options have
     // been updated.
+    // 记录父构造器的options
     Sub.superOptions = Super.options
+    // 记录参数
     Sub.extendOptions = extendOptions
+    // 记录Sub.options
     Sub.sealedOptions = extend({}, Sub.options)
-
     // cache constructor
     cachedCtors[SuperId] = Sub
     return Sub
