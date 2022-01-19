@@ -32,6 +32,7 @@ import {
   renderRecyclableComponentTemplate
 } from 'weex/runtime/recycle-list/render-component-template'
 
+// patch期间在组件vnode上调用的内联钩子
 // inline hooks to be invoked on component VNodes during patch
 const componentVNodeHooks = {
   init (vnode: VNodeWithData, hydrating: boolean): ?boolean {
@@ -40,19 +41,25 @@ const componentVNodeHooks = {
       !vnode.componentInstance._isDestroyed &&
       vnode.data.keepAlive
     ) {
+      // 被keepAlive包裹的组件
       // kept-alive components, treat as a patch
       const mountedNode: any = vnode // work around flow
+      //更新vnode
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
+      // 创建组件实例，即是 new vnode.componentOptions.Ctor(options) => Vue 组件实例
       const child = vnode.componentInstance = createComponentInstanceForVnode(
         vnode,
         activeInstance
       )
+      // 调用$mount，进入挂载
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
     }
   },
 
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
+    // 更新vnode
+    // 新的vnode配置项
     const options = vnode.componentOptions
     const child = vnode.componentInstance = oldVnode.componentInstance
     updateChildComponent(

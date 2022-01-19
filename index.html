@@ -167,27 +167,36 @@
     //   filters: Object.create(null),
     //   _base: Vue
     // }
-    var Profile = Vue.extend({
-        template: '<p>{{firstName}} {{lastName}} aka {{alias}}</p>'
-    })
-    console.log(Profile.options)
-    Profile.mixin({
-      mounted(){
-        console.log('ltf')
-      }
-    })
-    console.log(Profile.options)
-    Vue.mixin({
-        data: function () {
-            return {
-                firstName: 'Walter',
-                lastName: 'White',
-                alias: 'Heisenberg'
-            }
+    var Profile = {
+        template: '<p>123</p>',
+        created(){
+          console.log('create')
         }
+    }
+    // console.log(Profile.options)
+    // Profile.mixin({
+    //   mounted(){
+    //     console.log('ltf')
+    //   }
+    // })
+    // console.log(Profile.options)
+    // Vue.mixin({
+    //     data: function () {
+    //         return {
+    //             firstName: 'Walter',
+    //             lastName: 'White',
+    //             alias: 'Heisenberg'
+    //         }
+    //     }
+    // })
+    //  new Profile().$mount('#app')
+    new Vue({
+      el: '#app',
+      components: {
+        Profile
+      },
+      template: `<div><Profile/></div>`
     })
-     new Profile().$mount('#app')
-
    </script>
 </body>
 </html>
