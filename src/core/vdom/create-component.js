@@ -73,10 +73,12 @@ const componentVNodeHooks = {
 
   insert (vnode: MountedComponentVNode) {
     const { context, componentInstance } = vnode
+    //调用mounted钩子函数
     if (!componentInstance._isMounted) {
       componentInstance._isMounted = true
       callHook(componentInstance, 'mounted')
     }
+    // 如果 被keep-alive 包裹
     if (vnode.data.keepAlive) {
       if (context._isMounted) {
         // vue-router#1212

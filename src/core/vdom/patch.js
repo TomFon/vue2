@@ -238,6 +238,7 @@ export function createPatchFunction (backend) {
       // 组件实例存在并且被keep-alive包裹
       const isReactivated = isDef(vnode.componentInstance) && i.keepAlive
       if (isDef(i = i.hook) && isDef(i = i.init)) {
+        console.log("组件 实例化")
         // 调用vnode.data.hook.init，创建组件的实例
         i(vnode, false /* hydrating */)
       }
@@ -259,6 +260,7 @@ export function createPatchFunction (backend) {
 
   function initComponent (vnode, insertedVnodeQueue) {
     if (isDef(vnode.data.pendingInsert)) {
+      console.log('组件 initComponent',vnode,[...vnode.data.pendingInsert])
       insertedVnodeQueue.push.apply(insertedVnodeQueue, vnode.data.pendingInsert)
       vnode.data.pendingInsert = null
     }
@@ -266,6 +268,7 @@ export function createPatchFunction (backend) {
     vnode.elm = vnode.componentInstance.$el
     // 递归往下寻找真实渲染vnode的tag
     if (isPatchable(vnode)) {
+      // 调用create钩子函数，将vnode塞进insertedVnodeQueue
       invokeCreateHooks(vnode, insertedVnodeQueue)
       setScope(vnode)
     } else {
@@ -298,14 +301,22 @@ export function createPatchFunction (backend) {
     // a reactivated keep-alive component doesn't insert itself
     insert(parentElm, vnode.elm, refElm)
   }
-
+  /**
+   * 
+   * @param {*} parent 父节点
+   * @param {*} elm  要插入的dom节点
+   * @param {*} ref elm的下一个相邻节点
+   */
   function insert (parent, elm, ref) {
     if (isDef(parent)) {
+      // 必须父节点存在
       if (isDef(ref)) {
+        // elm，ref必须拥有相同的父节点
         if (nodeOps.parentNode(ref) === parent) {
           nodeOps.insertBefore(parent, elm, ref)
         }
       } else {
+        // 相邻节点就直接在最后插入elm
         nodeOps.appendChild(parent, elm)
       }
     }
@@ -638,9 +649,12 @@ export function createPatchFunction (backend) {
   function invokeInsertHook (vnode, queue, initial) {
     // delay insert hooks for component root nodes, invoke them after the
     // element is really inserted
+    console.log('invokeInsertHook')
     if (isTrue(initial) && isDef(vnode.parent)) {
+      console.log([...queue],'有占位vnode',vnode.parent)
       vnode.parent.data.pendingInsert = queue
     } else {
+      console.log(queue)
       for (let i = 0; i < queue.length; ++i) {
         queue[i].data.hook.insert(queue[i])
       }
@@ -760,6 +774,7 @@ export function createPatchFunction (backend) {
   }
 
   return function patch (oldVnode, vnode, hydrating, removeOnly) {
+    console.log('patch start',vnode,'-----------')
     // 1. 新vnode不存在，旧vnode存在，即删除
     // 2. 新vnode存在，旧vnode不存在，即新增
     // 3. 新旧vnode都存在，旧vnode不是真实的元素且新旧vnode是同一vnode，表示 修改（更新） 。
@@ -879,6 +894,7 @@ export function createPatchFunction (backend) {
     }
 
     invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch)
+    console.log('patch end',vnode,'-------')
     return vnode.elm
   }
 }
