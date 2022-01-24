@@ -181,6 +181,7 @@ export function mountComponent (
       measure(`vue ${name} render`, startTag, endTag)
 
       mark(startTag)
+      console.log('vnode--',vnode)
       vm._update(vnode, hydrating)
       mark(endTag)
       measure(`vue ${name} patch`, startTag, endTag)

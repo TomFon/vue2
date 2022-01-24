@@ -70,6 +70,7 @@ export default {
     cacheVNode() {
       const { cache, keys, vnodeToCache, keyToCache } = this
       if (vnodeToCache) {
+        // 当前vnode，获取标签名，实例，还有组件options
         const { tag, componentInstance, componentOptions } = vnodeToCache
         cache[keyToCache] = {
           name: getComponentName(componentOptions),
@@ -77,6 +78,7 @@ export default {
           componentInstance,
         }
         keys.push(keyToCache)
+        // 清除最后一个最靠前的缓存，即key等于0
         // prune oldest entry
         if (this.max && keys.length > parseInt(this.max)) {
           pruneCacheEntry(cache, keys[0], keys, this._vnode)
@@ -136,10 +138,12 @@ export default {
         : vnode.key
       if (cache[key]) {
         vnode.componentInstance = cache[key].componentInstance
+        //根据LRU策略, 让当前的key靠前
         // make current key freshest
         remove(keys, key)
         keys.push(key)
       } else {
+        // 把设置缓存放在update钩子后
         // delay setting the cache until update
         this.vnodeToCache = vnode
         this.keyToCache = key

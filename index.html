@@ -168,7 +168,14 @@
     //   _base: Vue
     // }
     const ProfileChild = {
-      template: '<p>456</p>',
+      template: '<p v-focus>456</p>',
+      directives:{
+         focus: {
+            inserted: function (el) {
+               console.log('insert')
+            }
+         }
+      },
       created(){
         console.log('ProfileChild create')
       },
@@ -205,18 +212,29 @@
     //     }
     // })
     //  new Profile().$mount('#app')
+    // Vue.component('async-function',function(resolve,reject){
+    //    setTimeout(function(){
+    //        resolve(ProfileChild)
+    //    },3000)
+    // })
+    // Vue.component('async-function', async ()=>{
+    //    return ProfileChild
+    // })
+    const Child3 = {
+      template: `<div>123</div>`
+    }
     new Vue({
       el: '#app',
-      components: {
-        Profile
-      },
       created(){
         console.log('main create')
       },
       mounted(){
           console.log('main mounted')
       },
-      template: `<div><Profile/></div>`
+      components: {
+        Child3
+       },
+      template: `<div><keep-alive><Child3/></keep-alive></div>`
     })
    </script>
 </body>

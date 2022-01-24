@@ -238,7 +238,6 @@ export function createPatchFunction (backend) {
       // 组件实例存在并且被keep-alive包裹
       const isReactivated = isDef(vnode.componentInstance) && i.keepAlive
       if (isDef(i = i.hook) && isDef(i = i.init)) {
-        console.log("组件 实例化")
         // 调用vnode.data.hook.init，创建组件的实例
         i(vnode, false /* hydrating */)
       }
@@ -350,10 +349,10 @@ export function createPatchFunction (backend) {
     for (let i = 0; i < cbs.create.length; ++i) {
       cbs.create[i](emptyNode, vnode)
     }
-    // 调用组件的create钩子
     i = vnode.data.hook // Reuse variable
     if (isDef(i)) {
       if (isDef(i.create)) i.create(emptyNode, vnode)
+      // 收集自定义组件的insert
       if (isDef(i.insert)) insertedVnodeQueue.push(vnode)
     }
   }

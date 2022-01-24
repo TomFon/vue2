@@ -74,10 +74,13 @@ export function initMixin (Vue: Class<Component>) {
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
+  // options._parentVode 为组件vnode
   const parentVnode = options._parentVnode
+  // options.parent 为父实例
   opts.parent = options.parent
   opts._parentVnode = parentVnode
   const vnodeComponentOptions = parentVnode.componentOptions
+  // 把vnode的componentOptions中的 propsData、listeners、children 、tag 放在 vm.$options对象中的 propsData 、_parentListeners 、_renderChildren、_componentTag
   opts.propsData = vnodeComponentOptions.propsData
   opts._parentListeners = vnodeComponentOptions.listeners
   opts._renderChildren = vnodeComponentOptions.children

@@ -210,7 +210,7 @@ export function createComponent (
   if (__WEEX__ && isRecyclableComponent(vnode)) {
     return renderRecyclableComponentTemplate(vnode)
   }
-
+  
   return vnode
 }
 
