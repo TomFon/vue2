@@ -98,7 +98,7 @@ export function _createElement (
     // 人为调用render函数,要对children做特殊处理
     children = normalizeChildren(children)
   } else if (normalizationType === SIMPLE_NORMALIZE) {
-    // 非认为调用render函数,扁平化children（只做一级处理）
+    // 非人为调用render函数,扁平化children（只做一级处理）
     children = simpleNormalizeChildren(children)
   }
   let vnode, ns

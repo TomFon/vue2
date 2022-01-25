@@ -67,9 +67,7 @@
       v-on:click="currentTab = tab"
     >
       {{ tab }}
-    </button>
-
-    <keep-alive>
+    </button><keep-alive>
       <component v-bind:is="currentTabComponent" class="tab"></component>
     </keep-alive>
   </div>
@@ -138,6 +136,9 @@
       data: {
         currentTab: "Posts",
         tabs: ["Posts", "Archive"]
+      },
+      updated(){
+         console.log('updated')
       },
       computed: {
         currentTabComponent: function() {

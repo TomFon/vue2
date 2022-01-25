@@ -212,29 +212,44 @@
     //     }
     // })
     //  new Profile().$mount('#app')
-    // Vue.component('async-function',function(resolve,reject){
-    //    setTimeout(function(){
-    //        resolve(ProfileChild)
-    //    },3000)
-    // })
+    Vue.component('async-function',function(resolve,reject){
+       setTimeout(function(){
+           resolve(ProfileChild)
+       },3000)
+    })
     // Vue.component('async-function', async ()=>{
     //    return ProfileChild
     // })
     const Child3 = {
-      template: `<div>123</div>`
+      template: `<div>child3名字:<input/></div>`
+    }
+    const Child4 = {
+      template: `<div>child4年龄: <input/></div>`
     }
     new Vue({
       el: '#app',
+      data: function(){
+         return {
+             current: 'Child3'
+         }
+      },
+      methods: {
+         toggle(){
+            this.current = this.current === 'Child3' ? 'Child4': 'Child3'
+         }
+      },
       created(){
         console.log('main create')
       },
       mounted(){
-          console.log('main mounted')
+          console.log('main mounted',this)
       },
       components: {
-        Child3
+        Child3,Child4
        },
-      template: `<div><keep-alive><Child3/></keep-alive></div>`
+     //template: `<div><Child3><p>123</p></Child3></div>`
+     //template: `<div><button @click="toggle">切换{{current}}</button><keep-alive><component :is="current"></component></keep-alive></div>`
+     template: `<div><button @click="toggle">切换{{current}}</button><Child3/></div>`
     })
    </script>
 </body>

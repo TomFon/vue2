@@ -259,7 +259,6 @@ export function createPatchFunction (backend) {
 
   function initComponent (vnode, insertedVnodeQueue) {
     if (isDef(vnode.data.pendingInsert)) {
-      console.log('组件 initComponent',vnode,[...vnode.data.pendingInsert])
       insertedVnodeQueue.push.apply(insertedVnodeQueue, vnode.data.pendingInsert)
       vnode.data.pendingInsert = null
     }
@@ -648,12 +647,9 @@ export function createPatchFunction (backend) {
   function invokeInsertHook (vnode, queue, initial) {
     // delay insert hooks for component root nodes, invoke them after the
     // element is really inserted
-    console.log('invokeInsertHook')
     if (isTrue(initial) && isDef(vnode.parent)) {
-      console.log([...queue],'有占位vnode',vnode.parent)
       vnode.parent.data.pendingInsert = queue
     } else {
-      console.log(queue)
       for (let i = 0; i < queue.length; ++i) {
         queue[i].data.hook.insert(queue[i])
       }

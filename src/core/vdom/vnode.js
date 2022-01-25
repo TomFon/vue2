@@ -39,29 +39,29 @@ export default class VNode {
     componentOptions?: VNodeComponentOptions,
     asyncFactory?: Function
   ) {
-    this.tag = tag
-    this.data = data
-    this.children = children
-    this.text = text
-    this.elm = elm
-    this.ns = undefined
-    this.context = context
+    this.tag = tag // 标签名称
+    this.data = data // 数据
+    this.children = children // 子节点数组
+    this.text = text // 文本内容
+    this.elm = elm  // 真实dom
+    this.ns = undefined // 命名空间
+    this.context = context // 当前渲染实例
     this.fnContext = undefined
     this.fnOptions = undefined
     this.fnScopeId = undefined
-    this.key = data && data.key
-    this.componentOptions = componentOptions
-    this.componentInstance = undefined
+    this.key = data && data.key // 唯一标识
+    this.componentOptions = componentOptions // 包括Ctor钩子函数 propsData 父往子传递的数据, listeners 父绑定的时间, tag 原生标签名字, children 是当前vnode组件包裹的vnode
+    this.componentInstance = undefined // 当前vnode组件的实例
     this.parent = undefined
     this.raw = false
     this.isStatic = false
     this.isRootInsert = true
-    this.isComment = false
+    this.isComment = false // 注释vnode
     this.isCloned = false
     this.isOnce = false
-    this.asyncFactory = asyncFactory
-    this.asyncMeta = undefined
-    this.isAsyncPlaceholder = false
+    this.asyncFactory = asyncFactory // 异步组件的回调函数 如 function(resolve，reject)
+    this.asyncMeta = undefined // 异步组件的数据
+    this.isAsyncPlaceholder = false // 异步占位vnode
   }
 
   // DEPRECATED: alias for componentInstance for backwards compat.
