@@ -143,6 +143,7 @@ export function createPatchFunction (backend) {
     index
   ) {
     if (isDef(vnode.elm) && isDef(ownerArray)) {
+      // 大概意思是用作渲染的vnode，现在重写它的elm活导致潜在的错误
       // This vnode was used in a previous render!
       // now it's used as a new node, overwriting its elm would cause
       // potential patch errors down the road when it's used as an insertion
@@ -448,17 +449,20 @@ export function createPatchFunction (backend) {
       removeNode(vnode.elm)
     }
   }
-
+  // https://juejin.cn/post/6844903921408802829#heading-9
   function updateChildren (parentElm, oldCh, newCh, insertedVnodeQueue, removeOnly) {
-    let oldStartIdx = 0
-    let newStartIdx = 0
-    let oldEndIdx = oldCh.length - 1
-    let oldStartVnode = oldCh[0]
-    let oldEndVnode = oldCh[oldEndIdx]
-    let newEndIdx = newCh.length - 1
-    let newStartVnode = newCh[0]
-    let newEndVnode = newCh[newEndIdx]
+    // 1.先通过快捷查找
+    // 2.快捷查看查找不到，就通过key值查找
+    let oldStartIdx = 0 // 旧开始下标
+    let newStartIdx = 0 // 新开始下标
+    let oldEndIdx = oldCh.length - 1 // 旧结束下标
+    let oldStartVnode = oldCh[0] // 旧开始vnode
+    let oldEndVnode = oldCh[oldEndIdx] // 旧结束vnode
+    let newEndIdx = newCh.length - 1 // 新结束下标
+    let newStartVnode = newCh[0] // 新开始vnode
+    let newEndVnode = newCh[newEndIdx] // 新结束vnode
     let oldKeyToIdx, idxInOld, vnodeToMove, refElm
+    // oldKeyToIdx 用于通过key查找的方式，是个map，key值为vnode.key,value为vnode在oldCh的序号，用来通过key值查找的
 
     // removeOnly is a special flag used only by <transition-group>
     // to ensure removed elements stay in correct relative positions
@@ -468,44 +472,54 @@ export function createPatchFunction (backend) {
     if (process.env.NODE_ENV !== 'production') {
       checkDuplicateKeys(newCh)
     }
-
+    // 只有 旧开下标小于等于旧结束下标 并且 新开下标少于等于新结束下标
     while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
       if (isUndef(oldStartVnode)) {
+        // 跳过因位移导致undefine 
         oldStartVnode = oldCh[++oldStartIdx] // Vnode has been moved left
       } else if (isUndef(oldEndVnode)) {
+        // 跳过因位移导致undefine 
         oldEndVnode = oldCh[--oldEndIdx]
-      } else if (sameVnode(oldStartVnode, newStartVnode)) {
-        patchVnode(oldStartVnode, newStartVnode, insertedVnodeQueue, newCh, newStartIdx)
-        oldStartVnode = oldCh[++oldStartIdx]
-        newStartVnode = newCh[++newStartIdx]
-      } else if (sameVnode(oldEndVnode, newEndVnode)) {
+      } else if (sameVnode(oldStartVnode, newStartVnode)) { // 对比新第一个与旧第一个
+        patchVnode(oldStartVnode, newStartVnode, insertedVnodeQueue, newCh, newStartIdx)  // 递归调用            
+        oldStartVnode = oldCh[++oldStartIdx] // 旧第一节点和下标重新标记右移        
+        newStartVnode = newCh[++newStartIdx] // 新第一节点和下标重新标记右移        
+      } else if (sameVnode(oldEndVnode, newEndVnode)) { // 对比旧最后与新最后
         patchVnode(oldEndVnode, newEndVnode, insertedVnodeQueue, newCh, newEndIdx)
-        oldEndVnode = oldCh[--oldEndIdx]
-        newEndVnode = newCh[--newEndIdx]
-      } else if (sameVnode(oldStartVnode, newEndVnode)) { // Vnode moved right
+        oldEndVnode = oldCh[--oldEndIdx] // 旧最后节点和下标重新左移
+        newEndVnode = newCh[--newEndIdx] // 新最后节点和下标重新左移
+      } else if (sameVnode(oldStartVnode, newEndVnode)) { // Vnode moved right  // 对比 新最后与旧第一
         patchVnode(oldStartVnode, newEndVnode, insertedVnodeQueue, newCh, newEndIdx)
+        // 在旧第一个插在旧最后之后
         canMove && nodeOps.insertBefore(parentElm, oldStartVnode.elm, nodeOps.nextSibling(oldEndVnode.elm))
-        oldStartVnode = oldCh[++oldStartIdx]
-        newEndVnode = newCh[--newEndIdx]
-      } else if (sameVnode(oldEndVnode, newStartVnode)) { // Vnode moved left
+        oldStartVnode = oldCh[++oldStartIdx] // 旧第一个节点和下标重新右移
+        newEndVnode = newCh[--newEndIdx] // 新结束节点和下标重新左移
+      } else if (sameVnode(oldEndVnode, newStartVnode)) { // Vnode moved left  对比旧最后节点和新第一个节点
         patchVnode(oldEndVnode, newStartVnode, insertedVnodeQueue, newCh, newStartIdx)
+        // 将旧最后一个节点插在旧第一个节点之前
         canMove && nodeOps.insertBefore(parentElm, oldEndVnode.elm, oldStartVnode.elm)
-        oldEndVnode = oldCh[--oldEndIdx]
-        newStartVnode = newCh[++newStartIdx]
+        oldEndVnode = oldCh[--oldEndIdx] // 旧结束节点和下标左移
+        newStartVnode = newCh[++newStartIdx] // 新第一个节点和下标右移
       } else {
+        // 上面快捷查找失败
         if (isUndef(oldKeyToIdx)) oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx)
+        // 有key值就通过key查找，没有就遍历oldCh，通过sameVnode来匹对
         idxInOld = isDef(newStartVnode.key)
           ? oldKeyToIdx[newStartVnode.key]
           : findIdxInOld(newStartVnode, oldCh, oldStartIdx, oldEndIdx)
-        if (isUndef(idxInOld)) { // New element
+        if (isUndef(idxInOld)) { // New element 旧ch都没有，代表是新增的
           createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm, false, newCh, newStartIdx)
         } else {
+          // 找到了
           vnodeToMove = oldCh[idxInOld]
+          // 进一步判断vnodeToMove ，newStartVnode是否为同一个vnode
           if (sameVnode(vnodeToMove, newStartVnode)) {
             patchVnode(vnodeToMove, newStartVnode, insertedVnodeQueue, newCh, newStartIdx)
-            oldCh[idxInOld] = undefined
+            oldCh[idxInOld] = undefined // 被移动的vnode坑位设为undefine
+            // 被移动旧第一个节点之前
             canMove && nodeOps.insertBefore(parentElm, vnodeToMove.elm, oldStartVnode.elm)
           } else {
+            // 相同的key，但其他不相等也当做是新增
             // same key but different element. treat as new element
             createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm, false, newCh, newStartIdx)
           }
@@ -514,6 +528,7 @@ export function createPatchFunction (backend) {
       }
     }
     if (oldStartIdx > oldEndIdx) {
+      // 旧的移动完了，新的可能还没移动完。
       refElm = isUndef(newCh[newEndIdx + 1]) ? null : newCh[newEndIdx + 1].elm
       addVnodes(parentElm, refElm, newCh, newStartIdx, newEndIdx, insertedVnodeQueue)
     } else if (newStartIdx > newEndIdx) {
