@@ -20,6 +20,9 @@ export function resolveSlots (
     if (data && data.attrs && data.attrs.slot) {
       delete data.attrs.slot
     }
+    // <Child><p slot="slotName"></p></Child>
+    // <Child><template slot="slotName"></template></Child>
+    // 因为 slot 的 vnode 是在父组件实例的作用域中生成的，所以 child.context 指向父组件
     // named slots should only be respected if the vnode was rendered in the
     // same context.
     if ((child.context === context || child.fnContext === context) &&
@@ -36,6 +39,7 @@ export function resolveSlots (
       (slots.default || (slots.default = [])).push(child)
     }
   }
+  // 将注释VNode或者是空字符串的文本VNode去掉
   // ignore slots that contains only whitespace
   for (const name in slots) {
     if (slots[name].every(isWhitespace)) {

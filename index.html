@@ -3,6 +3,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- <meta name="referrer" content="same-origin"> -->
   <script src="./dist/vue.js"></script>
   <title>Document</title>
 </head>
@@ -221,36 +222,156 @@
     //    return ProfileChild
     // })
     const Child3 = {
-      template: `<div>child3名字:<input/></div>`
+      props:{
+         name: String
+      },
+      template: `<div>{{name}}:<input/><slot>默认内容</slot></div>`
     }
     const Child4 = {
-      template: `<div>child4年龄: <input/></div>`
+      props:{
+         name: String
+      },
+      template: `<div>{{name}}: <input/></div>`
     }
-    new Vue({
-      el: '#app',
+    const Child5 = {
       data: function(){
          return {
-             current: 'Child3'
+           info: {
+             age: 20,
+             name: 'ltf'
+           },
+           money:12
          }
-      },
-      methods: {
-         toggle(){
-            this.current = this.current === 'Child3' ? 'Child4': 'Child3'
-         }
-      },
-      created(){
-        console.log('main create')
       },
       mounted(){
-          console.log('main mounted',this)
+        console.log('child mounted')
       },
-      components: {
-        Child3,Child4
-       },
-     //template: `<div><Child3><p>123</p></Child3></div>`
-     //template: `<div><button @click="toggle">切换{{current}}</button><keep-alive><component :is="current"></component></keep-alive></div>`
-     template: `<div><button @click="toggle">切换{{current}}</button><Child3/></div>`
-    })
+      template: `<div><slot name="header" :hello="info" v-bind="{a:2}">{{info.age}}</slot></div>`
+    }
+    const Child6 = {
+      template: `<div class="container">
+          <header>
+            <slot name="header"></slot>
+          </header>
+          <main>
+            <slot></slot>
+          </main>
+          <footer>
+            <slot name="footer"></slot>
+          </footer>
+        </div>`
+    }
+    const Child7 = {
+      data: function(){
+         return {
+           info: {
+             age: 20,
+             name: 'ltf'
+           },
+           money:12
+         }
+      },
+      template: `<div><slot name="header" :hello="info">{{info.age}}</slot></div>`
+    }
+    // new Vue({
+    //   el: '#app',
+    //   data: function(){
+    //      return {
+    //          current: 'Child3',
+    //          slotName: 'header'
+    //      }
+    //   },
+    //   methods: {
+    //      toggle(){
+    //         this.current = this.current === 'Child3' ? 'Child4': 'Child3'
+    //      }
+    //   },
+    //   created(){
+    //     console.log('main create')
+    //   },
+    //   mounted(){
+    //       console.log('main mounted',this)
+    //       setTimeout(()=>{
+    //          this.current = 'Child4';
+    //       },5000)
+    //   },
+    //   components: {
+    //     Child3,Child4,Child5,Child6,Child7
+    //    },
+    //   //template: `<div><Child3></Child3></div>`
+    //  //template: `<div><button @click="toggle">切换{{current}}</button><keep-alive><component :is="current"></component></keep-alive></div>`
+    //  //template: `<div><button @click="toggle">切换</button><Child3 :name="current">123</Child3></div>`
+    //   template: `<div><Child5><template v-slot:header="{hello}">{{hello}}{{current}}</template></Child5></div>`
+    //   // template: `<Child6>
+    //   //     <template v-slot:header><h1>Here might be a page title</h1></template><p>A paragraph for the main content.</p><p>And another one.</p><template v-slot:footer><p>Here's some contact info</p></template>
+    //   //   </Child6>`
+    //   //template: `<div><Child7><template slot="header">123</template></Child7></div>`
+    // })
+
+    // 组件A
+const A = {
+  name: 'A',
+  template: `<div class="a"> 这是 A </div>`,
+  created () {
+    console.log('A 执行了 created')
+  },
+  mounted () {
+    console.log('A 执行了 mounted')
+  },
+  activated () {
+    console.log('A 执行了 activated',this)
+  },
+  deactivated () {
+    console.log('A 执行了 deactivated',this)
+  }
+}
+// 组件B
+const B = {
+  name: 'B',
+  template: `<div class="b"> 这是 B <img src="http://pic3.iqiyipic.com/image/20220122/5d/35/pv_10006595331_em_601.jpg"/></div>`,
+  created () {
+    console.log('B 执行了 created')
+  },
+  mounted () {
+    console.log('B 执行了 mounted')
+  },
+  activated () {
+    console.log('B 执行了 activated',this)
+  },
+  deactivated () {
+    console.log('B 执行了 deactivated',this)
+  }
+}
+new Vue({
+  components: { A, B },
+  el: '#app',
+  template: '<div>{{this.$data}}</div>',
+  //template: `<div><keep-alive><component :is="com"></component></keep-alive><button @click="change">点击</button></div>`,
+  data () {
+    return {
+      com: 'A',
+      msg: '',
+    }
+  },
+  computed:{
+     message(){
+       console.log('change')
+       return this.msg + 'hello'
+     }
+  },
+  mounted(){
+    console.log("main mounted")
+  },
+  created(){
+    console.log("main created",this.$data)
+//    this.$set(this.$data,'hell',12)
+  },
+  methods: {
+    change () {
+      this.com = this.com === 'A' ? 'B' : 'A'
+    }
+  }
+})
    </script>
 </body>
 </html>

@@ -5,6 +5,7 @@ import { normalizeChildren } from 'core/vdom/helpers/normalize-children'
 import { emptyObject } from 'shared/util'
 import { isAsyncPlaceholder } from './is-async-placeholder'
 
+// https://juejin.cn/post/6997966632022704135
 export function normalizeScopedSlots (
   slots: { [key: string]: Function } | void,
   normalSlots: { [key: string]: Array<VNode> },
@@ -17,6 +18,7 @@ export function normalizeScopedSlots (
   if (!slots) {
     res = {}
   } else if (slots._normalized) {
+    // 只有子组件更新，父组件不更新，返回上次创建的对象
     // fast path 1: child component re-render only, parent did not change
     return slots._normalized
   } else if (
@@ -27,6 +29,7 @@ export function normalizeScopedSlots (
     !hasNormalSlots &&
     !prevSlots.$hasNormal
   ) {
+    // 父组件更新，但是作用域插槽没有变化，返回上次创建的对象
     // fast path 2: stable scoped slots w/ no normal slots to proxy,
     // only need to normalize once
     return prevSlots

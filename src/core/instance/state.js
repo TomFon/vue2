@@ -112,6 +112,7 @@ function initProps (vm: Component, propsOptions: Object) {
 
 function initData (vm: Component) {
   let data = vm.$options.data
+  // 调用getData 防止触发getter收集依赖
   data = vm._data = typeof data === 'function'
     ? getData(data, vm)
     : data || {}
@@ -130,6 +131,7 @@ function initData (vm: Component) {
   let i = keys.length
   while (i--) {
     const key = keys[i]
+    // data上的key不能与methods上的冲突
     if (process.env.NODE_ENV !== 'production') {
       if (methods && hasOwn(methods, key)) {
         warn(
@@ -138,6 +140,7 @@ function initData (vm: Component) {
         )
       }
     }
+    // data上的key不能与props上的冲突
     if (props && hasOwn(props, key)) {
       process.env.NODE_ENV !== 'production' && warn(
         `The data property "${key}" is already declared as a prop. ` +
@@ -145,6 +148,7 @@ function initData (vm: Component) {
         vm
       )
     } else if (!isReserved(key)) {
+      // 代理data上的属性，可以直接用this[key]访问，实际访问的是this._data
       proxy(vm, `_data`, key)
     }
   }

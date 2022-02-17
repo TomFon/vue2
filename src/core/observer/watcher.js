@@ -216,6 +216,7 @@ export default class Watcher {
   depend () {
     let i = this.deps.length
     while (i--) {
+      //遍历当前watcher的dep发送订阅给栈顶wather
       this.deps[i].depend()
     }
   }

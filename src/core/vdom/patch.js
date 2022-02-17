@@ -285,6 +285,7 @@ export function createPatchFunction (backend) {
     // does not trigger because the inner node's created hooks are not called
     // again. It's not ideal to involve module-specific logic in here but
     // there doesn't seem to be a better way to do it.
+    // 方法内部解决对重新活跃组件 transition 动画不触发的问题
     let innerNode = vnode
     while (innerNode.componentInstance) {
       innerNode = innerNode.componentInstance._vnode

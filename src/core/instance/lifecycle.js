@@ -181,7 +181,7 @@ export function mountComponent (
       measure(`vue ${name} render`, startTag, endTag)
 
       mark(startTag)
-      console.log('vnode--',vnode)
+      //console.log('vnode--',vnode)
       vm._update(vnode, hydrating)
       mark(endTag)
       measure(`vue ${name} patch`, startTag, endTag)
@@ -303,13 +303,16 @@ function isInInactiveTree (vm) {
 
 export function activateChildComponent (vm: Component, direct?: boolean) {
   if (direct) {
+    //_directInactive是用来标记这个被打上停用标签的组件是否是最顶层的组件
     vm._directInactive = false
+    // 如果当前实例的祖辈实例不是活跃状态，则不会调用当前实例的activated生命周期。
     if (isInInactiveTree(vm)) {
       return
     }
   } else if (vm._directInactive) {
     return
   }
+  //_inactive是停用的标志
   if (vm._inactive || vm._inactive === null) {
     vm._inactive = false
     for (let i = 0; i < vm.$children.length; i++) {
