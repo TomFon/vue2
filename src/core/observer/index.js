@@ -188,6 +188,7 @@ export function defineReactive (
           // 通过子对象的dep通知watcher来存储子对象的dep
           childOb.dep.depend()
           if (Array.isArray(value)) {
+            // list:[{a:1},{a:2}] 实现 this.list[0]['a'] = 2 能触发响应,让{a:1}的dep收集watcher
             dependArray(value)
           }
         }
@@ -196,6 +197,7 @@ export function defineReactive (
     },
     set: function reactiveSetter (newVal) {
       const value = getter ? getter.call(obj) : val
+      // 值没变化就return
       /* eslint-disable no-self-compare */
       if (newVal === value || (newVal !== newVal && value !== value)) {
         return
@@ -211,7 +213,9 @@ export function defineReactive (
       } else {
         val = newVal
       }
+      //对新值进行响应式化处理
       childOb = !shallow && observe(newVal)
+      // 触发依赖
       dep.notify()
     }
   })

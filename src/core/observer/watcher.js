@@ -25,23 +25,23 @@ let uid = 0
  * This is used for both the $watch() api and directives.
  */
 export default class Watcher {
-  vm: Component;
-  expression: string;
-  cb: Function;
-  id: number;
-  deep: boolean;
-  user: boolean;
-  lazy: boolean;
-  sync: boolean;
-  dirty: boolean;
-  active: boolean;
-  deps: Array<Dep>;
-  newDeps: Array<Dep>;
-  depIds: SimpleSet;
-  newDepIds: SimpleSet;
-  before: ?Function;
-  getter: Function;
-  value: any;
+  vm: Component; //当前实例
+  expression: string; // 监听属性的字符串
+  cb: Function; // 数据发生变动执行的回调
+  id: number; // 每个watcher的唯一id
+  deep: boolean; // 深度监测
+  user: boolean; // 属于使用者自己new的watcher
+  lazy: boolean; // computed专用
+  sync: boolean; // 是否同步更新
+  dirty: boolean; // computed专用，规避多次求值
+  active: boolean; // 是否失去活性
+  deps: Array<Dep>; // 记录上一次收集的dep
+  newDeps: Array<Dep>; // 记录最新收集的dep
+  depIds: SimpleSet; // Set
+  newDepIds: SimpleSet; // Set
+  before: ?Function; // 更新之前的回调
+  getter: Function; // 产生订阅的函数
+  value: any; // 监听属性的值
 
   constructor (
     vm: Component,
@@ -52,6 +52,7 @@ export default class Watcher {
   ) {
     this.vm = vm
     if (isRenderWatcher) {
+      //是渲染watcher，就给实例添加_watcher
       vm._watcher = this
     }
     vm._watchers.push(this)
@@ -80,6 +81,7 @@ export default class Watcher {
     if (typeof expOrFn === 'function') {
       this.getter = expOrFn
     } else {
+      // 如果expOrFn是字符串，就包装为一个函数
       this.getter = parsePath(expOrFn)
       if (!this.getter) {
         this.getter = noop
@@ -100,10 +102,12 @@ export default class Watcher {
    * Evaluate the getter, and re-collect dependencies.
    */
   get () {
+    //把实例推进栈顶，即Dep.target = this
     pushTarget(this)
     let value
     const vm = this.vm
     try {
+      // 调用产生订阅的函数
       value = this.getter.call(vm, vm)
     } catch (e) {
       if (this.user) {
@@ -115,8 +119,10 @@ export default class Watcher {
       // "touch" every property so they are all tracked as
       // dependencies for deep watching
       if (this.deep) {
+        // 深度监听
         traverse(value)
       }
+      // 把实例推出栈
       popTarget()
       this.cleanupDeps()
     }
@@ -128,9 +134,11 @@ export default class Watcher {
    */
   addDep (dep: Dep) {
     const id = dep.id
+    // 一次求值 的过程中收集重复的依赖
     if (!this.newDepIds.has(id)) {
       this.newDepIds.add(id)
       this.newDeps.push(dep)
+      // 多次求值 中避免收集重复依赖的
       if (!this.depIds.has(id)) {
         dep.addSub(this)
       }

@@ -345,22 +345,20 @@ const B = {
 new Vue({
   components: { A, B },
   el: '#app',
-  template: '<div>{{this.$data}}</div>',
+  template: '<div>{{this.msg}}</div>',
   //template: `<div><keep-alive><component :is="com"></component></keep-alive><button @click="change">点击</button></div>`,
   data () {
     return {
       com: 'A',
-      msg: '',
+      msg: [{a:2},{a:3}],
     }
-  },
-  computed:{
-     message(){
-       console.log('change')
-       return this.msg + 'hello'
-     }
   },
   mounted(){
     console.log("main mounted")
+    this.msg = {a:1}
+    setTimeout(()=>{
+      this.msg.a = 2;
+    },2000)
   },
   created(){
     console.log("main created",this.$data)
