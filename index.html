@@ -104,16 +104,12 @@
         // setTimeout(()=>{
         //    console.log('helo')
         // },0)
-        // this.$nextTick(() => { console.log(1) })
+        this.$nextTick(() => { console.log(1) })
     
-        // Promise.resolve('test').then((res)=>{
-        //   console.log(res,'res')
-        // })
-        // this.$nextTick(() => { console.log(2) })
-        // this.$nextTick(() => { console.log(3) })
-        // this.$nextTick().then(res=>{
-        //   console.log(res,'--')
-        // })
+        Promise.resolve('test').then((res)=>{
+          console.log(3)
+        })
+        this.$nextTick(() => { console.log(2) })
        },
        watch:{
           // 'message': function(newVal){
@@ -342,34 +338,43 @@ const B = {
     console.log('B 执行了 deactivated',this)
   }
 }
-new Vue({
-  components: { A, B },
-  el: '#app',
-  template: '<div>{{this.msg}}</div>',
-  //template: `<div><keep-alive><component :is="com"></component></keep-alive><button @click="change">点击</button></div>`,
-  data () {
-    return {
-      com: 'A',
-      msg: [{a:2},{a:3}],
-    }
-  },
-  mounted(){
-    console.log("main mounted")
-    this.msg = {a:1}
-    setTimeout(()=>{
-      this.msg.a = 2;
-    },2000)
-  },
-  created(){
-    console.log("main created",this.$data)
-//    this.$set(this.$data,'hell',12)
-  },
-  methods: {
-    change () {
-      this.com = this.com === 'A' ? 'B' : 'A'
-    }
-  }
-})
+// new Vue({
+//   components: { A, B },
+//   el: '#app',
+//   template: '<div>{{this.msg}}{{com}}</div>',
+//   //template: `<div><keep-alive><component :is="com"></component></keep-alive><button @click="change">点击</button></div>`,
+//   data () {
+//     return {
+//       com: 'A',
+//       msg: "hello",
+//     }
+//   },
+//   watch:{
+//     'com':function(){
+
+//     }
+//   },
+//   mounted(){
+//     console.log("main mounted",this)
+//     setTimeout(()=>{
+//       this.msg = "world"
+//     },2000)
+//     this.$watch('msg',function(){
+//        // this.msg = Date.now() + Math.random()
+//         console.log('msg')
+//     })
+//   },
+//   created(){
+//     console.log("main created",this.$data)
+// //    this.$set(this.$data,'hell',12)
+//   },
+//   methods: {
+//     change () {
+//       this.com = this.com === 'A' ? 'B' : 'A'
+//     }
+//   }
+// })
+ new Vue(config)
    </script>
 </body>
 </html>

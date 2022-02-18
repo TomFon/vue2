@@ -35,8 +35,8 @@ export default class Watcher {
   sync: boolean; // 是否同步更新
   dirty: boolean; // computed专用，规避多次求值
   active: boolean; // 是否失去活性
-  deps: Array<Dep>; // 记录上一次收集的dep
-  newDeps: Array<Dep>; // 记录最新收集的dep
+  deps: Array<Dep>; // 记录上一次收集的dep，一个watcher对应N个dep
+  newDeps: Array<Dep>; // 记录最新收集的dep,一个watcher对应N个dep
   depIds: SimpleSet; // Set
   newDepIds: SimpleSet; // Set
   before: ?Function; // 更新之前的回调
@@ -138,7 +138,7 @@ export default class Watcher {
     if (!this.newDepIds.has(id)) {
       this.newDepIds.add(id)
       this.newDeps.push(dep)
-      // 多次求值 中避免收集重复依赖的
+      // 检测dep身上有没有记录当前watcher，没有就添加
       if (!this.depIds.has(id)) {
         dep.addSub(this)
       }
@@ -152,10 +152,12 @@ export default class Watcher {
     let i = this.deps.length
     while (i--) {
       const dep = this.deps[i]
+      // 将不关联的dep的移除watcher
       if (!this.newDepIds.has(dep.id)) {
         dep.removeSub(this)
       }
     }
+    // 把newDepIds、newDeps的值赋给deps，depIds，并置空自己
     let tmp = this.depIds
     this.depIds = this.newDepIds
     this.newDepIds = tmp
@@ -173,10 +175,13 @@ export default class Watcher {
   update () {
     /* istanbul ignore else */
     if (this.lazy) {
+      // computer专用
       this.dirty = true
     } else if (this.sync) {
+      // 同步更新
       this.run()
     } else {
+      // 异步更新
       queueWatcher(this)
     }
   }
@@ -188,6 +193,7 @@ export default class Watcher {
   run () {
     if (this.active) {
       const value = this.get()
+      // 1.新旧值不相等； 2.是个对象 ; 3.深度检测
       if (
         value !== this.value ||
         // Deep watchers and watchers on Object/Arrays should fire even
@@ -199,6 +205,7 @@ export default class Watcher {
         // set new value
         const oldValue = this.value
         this.value = value
+        //用户定义的watcher添加捕捉错误逻辑
         if (this.user) {
           const info = `callback for watcher "${this.expression}"`
           invokeWithErrorHandling(this.cb, this.vm, [value, oldValue], this.vm, info)
@@ -214,6 +221,7 @@ export default class Watcher {
    * This only gets called for lazy watchers.
    */
   evaluate () {
+    // 给computer求值用的
     this.value = this.get()
     this.dirty = false
   }
@@ -224,7 +232,7 @@ export default class Watcher {
   depend () {
     let i = this.deps.length
     while (i--) {
-      //遍历当前watcher的dep发送订阅给栈顶wather
+      //让栈顶wather收集本watcher的deps
       this.deps[i].depend()
     }
   }
@@ -237,9 +245,11 @@ export default class Watcher {
       // remove self from vm's watcher list
       // this is a somewhat expensive operation so we skip it
       // if the vm is being destroyed.
+      //如果组件没有被销毁，那么将当前观察者实例从组件实例对象的 vm._watchers 数组中移除
       if (!this.vm._isBeingDestroyed) {
         remove(this.vm._watchers, this)
       }
+      // 解除dep跟观察者的关系
       let i = this.deps.length
       while (i--) {
         this.deps[i].removeSub(this)

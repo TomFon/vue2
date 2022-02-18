@@ -196,6 +196,7 @@ export function defineReactive (
       return value
     },
     set: function reactiveSetter (newVal) {
+      console.log('setting',newVal)
       const value = getter ? getter.call(obj) : val
       // 值没变化就return
       /* eslint-disable no-self-compare */

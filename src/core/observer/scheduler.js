@@ -166,13 +166,16 @@ function callActivatedHooks (queue) {
  */
 export function queueWatcher (watcher: Watcher) {
   const id = watcher.id
+  // 看看队列里面是否已经有传入的观察者watcher
   if (has[id] == null) {
     has[id] = true
     if (!flushing) {
+      // 队列还没flush时，直接push到队列
       queue.push(watcher)
     } else {
       // if already flushing, splice the watcher based on its id
       // if already past its id, it will be run next immediately.
+      // 队列正在flush，从剩余的队列，按从小到大找到其对应的位置
       let i = queue.length - 1
       while (i > index && queue[i].id > watcher.id) {
         i--
@@ -181,6 +184,7 @@ export function queueWatcher (watcher: Watcher) {
     }
     // queue the flush
     if (!waiting) {
+      // 加入下个tick
       waiting = true
 
       if (process.env.NODE_ENV !== 'production' && !config.async) {
