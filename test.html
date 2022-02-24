@@ -1,0 +1,50 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+     class Vue {
+         constructor(options){
+            this.$options = options
+         }
+         _render(){
+            this.$el = document.querySelector(this.$options.el)
+            
+         }
+     }
+     class Dep {
+       constructor(){
+           this.subs = [];
+       }
+     }
+     Dep.target = null
+     class Watch{
+        constructor(vm,getter,cb){
+          this.getter = getter
+          this.vm = vm;
+          this.cb = cb;
+          this.value = this.get();
+        }
+        get(){
+          Dep.target = this;
+          let vm = this.vm
+          let value = this.getter.call(vm,vm);
+          Dep.target = null;
+          return value
+        }
+        run() {
+          const value = this.get();
+          this.cb.call(vm,value,thi.value)
+        }
+        update() {
+            this.run();
+        }
+     }
+  </script>
+</body>
+</html>
