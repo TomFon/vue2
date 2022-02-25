@@ -17,7 +17,7 @@ const methodsToPatch = [
   'sort',
   'reverse'
 ]
-
+// 除了methodsToPatch 这些方法，其他调用arrayMethods原型链上的方法，即Array.prototype里面的方法
 /**
  * Intercept mutating methods and emit events
  */
