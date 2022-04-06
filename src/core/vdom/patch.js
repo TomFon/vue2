@@ -583,7 +583,6 @@ export function createPatchFunction (backend) {
     if (oldVnode === vnode) {
       return
     }
-
     if (isDef(vnode.elm) && isDef(ownerArray)) {
       // clone reused vnode
       vnode = ownerArray[index] = cloneVNode(vnode)

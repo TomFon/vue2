@@ -1,0 +1,60 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../dist/vue.js"></script>
+</head>
+<body>
+ 
+    <div id="app"></div>
+    <script>
+       let child1 = {
+           functional:true,
+           props: {
+               level: Number,
+               content: String
+           },
+           render(h,{props,data,children}){
+             return h(`h${props.level}`,props.content);
+           }
+       }
+       let child = {
+           components:{
+                child1
+           },
+           template: `<div>
+            <child1 :level="1" content="world hello"/>
+            i am child
+            </div>`
+       }
+       let config = {
+           comments: true,
+           el: "#app",
+           components:{
+             child
+           },
+           template: `<div class="content">
+             <h1>这是标题</h1>
+             <div>{{message}}</div>
+             <!-- hello -->
+             <button @click="add">点击</button>
+             <child/>
+            </div>`,
+            data: function(){
+                return {
+                    message: 1
+                }
+            },
+            methods:{
+                add(){
+                    this.message += 1;
+                }
+            }
+
+       }
+       new Vue(config)
+    </script>
+</body>
+</html>

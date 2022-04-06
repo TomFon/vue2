@@ -45,20 +45,20 @@ export default class VNode {
     this.text = text // 文本内容
     this.elm = elm  // 真实dom
     this.ns = undefined // 命名空间
-    this.context = context // 当前渲染实例
-    this.fnContext = undefined
-    this.fnOptions = undefined
-    this.fnScopeId = undefined
+    this.context = context // 当前节点vue实例
+    this.fnContext = undefined //函数式组件对应的Vue实例
+    this.fnOptions = undefined //函数式组件对应实例的options
+    this.fnScopeId = undefined // 
     this.key = data && data.key // 唯一标识
     this.componentOptions = componentOptions // 包括Ctor钩子函数 propsData 父往子传递的数据, listeners 父绑定的时间, tag 原生标签名字, children 是当前vnode组件包裹的vnode
     this.componentInstance = undefined // 当前vnode组件的实例
-    this.parent = undefined
-    this.raw = false
-    this.isStatic = false
-    this.isRootInsert = true
-    this.isComment = false // 注释vnode
-    this.isCloned = false
-    this.isOnce = false
+    this.parent = undefined // 父节点
+    this.raw = false //  是否是原生html
+    this.isStatic = false // 是否为静态节点
+    this.isRootInsert = true // 是否作为根节点插入
+    this.isComment = false // 是否为注释节点
+    this.isCloned = false // 是否是克隆的节点
+    this.isOnce = false //是否有v-once指令
     this.asyncFactory = asyncFactory // 异步组件的回调函数 如 function(resolve，reject)
     this.asyncMeta = undefined // 异步组件的数据
     this.isAsyncPlaceholder = false // 异步占位vnode
@@ -86,7 +86,7 @@ export function createTextVNode (val: string | number) {
 // used for static nodes and slot nodes because they may be reused across
 // multiple renders, cloning them avoids errors when DOM manipulations rely
 // on their elm reference.
-export function cloneVNode (vnode: VNode): VNode {
+export function  cloneVNode (vnode: VNode): VNode {
   const cloned = new VNode(
     vnode.tag,
     vnode.data,
