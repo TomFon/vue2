@@ -83,6 +83,8 @@ export function createPatchFunction (backend) {
       }
     }
   }
+  console.log(modules)
+  console.log(nodeOps)
   function emptyNodeAt (elm) {
     return new VNode(nodeOps.tagName(elm).toLowerCase(), {}, [], undefined, elm)
   }
@@ -259,7 +261,9 @@ export function createPatchFunction (backend) {
   }
 
   function initComponent (vnode, insertedVnodeQueue) {
+    console.log("initComponent",vnode);
     if (isDef(vnode.data.pendingInsert)) {
+
       insertedVnodeQueue.push.apply(insertedVnodeQueue, vnode.data.pendingInsert)
       vnode.data.pendingInsert = null
     }
@@ -392,7 +396,7 @@ export function createPatchFunction (backend) {
 
   function invokeDestroyHook (vnode) {
     //  执行组件的 destroy 钩子，即执行 $destroy 方法 
-    //  执行组件各个模块(style、class、directive 等）的 destroy 方法
+    //  执行组件各个模块(ref,directive 等）的 destroy 方法
     //   如果 vnode 还存在子节点，则递归调用 invokeDestroyHook
     let i, j
     const data = vnode.data
@@ -861,7 +865,12 @@ export function createPatchFunction (backend) {
           oldElm._leaveCb ? null : parentElm,
           nodeOps.nextSibling(oldElm)
         )
-        // 递归更新父占位符节点元素（异步组件）
+        /**
+         * <template>
+         *    <div v-if="flag" ref="hello">hello</div>
+         *    <div v-else v-say ref="world">world</div>
+         * </template>
+         */
         // update parent placeholder node element, recursively
         if (isDef(vnode.parent)) {
           let ancestor = vnode.parent

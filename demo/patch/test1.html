@@ -1,0 +1,57 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../dist/vue.js"></script>
+</head>
+<body>
+ 
+    <div id="app"></div>
+    <script>
+       let child = {
+           template: `<div>
+            i am child
+            </div>`
+       }
+       let parent = {
+           components:{
+               child
+           },
+           directives:{
+              focus:{
+                  inserted(){
+                     console.log("inserted")
+                  },
+                  bind(){
+
+                  },
+                  update(){
+
+                  },
+                  unbind(){
+
+                  }
+              }
+           },
+           template:`<child v-focus/>`
+       }
+       let config = {
+           comments: true,
+           el: "#app",
+           components:{
+             parent
+           },
+           template: `<parent/>`,
+            data: function(){
+                return {
+                    message: 1
+                }
+            }
+
+       }
+       new Vue(config)
+    </script>
+</body>
+</html>

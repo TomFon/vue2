@@ -99,13 +99,16 @@ export function lifecycleMixin (Vue: Class<Component>) {
     if (vm._isBeingDestroyed) {
       return
     }
+    // 触发 beforeDestroy
     callHook(vm, 'beforeDestroy')
     vm._isBeingDestroyed = true
+    // 移除 Vue 组件链里的本组件实例引用
     // remove self from parent
     const parent = vm.$parent
     if (parent && !parent._isBeingDestroyed && !vm.$options.abstract) {
       remove(parent.$children, vm)
     }
+    // 知各订阅中心移除各订阅列表里该 watcher 的订阅
     // teardown watchers
     if (vm._watcher) {
       vm._watcher.teardown()
@@ -114,23 +117,29 @@ export function lifecycleMixin (Vue: Class<Component>) {
     while (i--) {
       vm._watchers[i].teardown()
     }
+    // 移除 data 对象的 __ob__
     // remove reference from data ob
     // frozen object may not have observer.
     if (vm._data.__ob__) {
       vm._data.__ob__.vmCount--
     }
+    // 开始销毁组件实例,即对组件实例执行 invokeDestroyHook
     // call the last hook...
     vm._isDestroyed = true
     // invoke destroy hooks on current rendered tree
     vm.__patch__(vm._vnode, null)
+    // 触发 destroyed 钩子
     // fire destroyed hook
     callHook(vm, 'destroyed')
+    // 移除组件实例上的事件
     // turn off all instance listeners.
     vm.$off()
+    // 移除组件实例里的 $el 的实例引用
     // remove __vue__ reference
     if (vm.$el) {
       vm.$el.__vue__ = null
     }
+    // 移除组件节点的 parent 引用
     // release circular reference (#6759)
     if (vm.$vnode) {
       vm.$vnode.parent = null
