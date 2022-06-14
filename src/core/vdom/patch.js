@@ -681,7 +681,8 @@ export function createPatchFunction (backend) {
   // Note: style is excluded because it relies on initial clone for future
   // deep updates (#7063).
   const isRenderedModule = makeMap('attrs,class,staticClass,staticStyle,key')
-
+  
+  // hydrate 可以翻译成注水，这个过程就是专为 ssr 设计的，那么 ssr 做了什么事情呢，其实相比 csr 而言，就是在服务端也跑一遍 Vue.js 代码，生成 HTML 模板，然后在客户端执行的过程中，除了渲染组件外，还要执行 hydrate 注水过程，所以在 ssr 的时候 $mount 第二个参数为 true。
   // Note: this is a browser-only function so we can assume elms are DOM nodes.
   function hydrate (elm, vnode, insertedVnodeQueue, inVPre) {
     let i
