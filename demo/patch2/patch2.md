@@ -2,7 +2,7 @@
  * @Author: liangtengfeng liangtengfeng@meizu.com
  * @Date: 2022-06-14 11:23:01
  * @LastEditors: liangtengfeng liangtengfeng@meizu.com
- * @LastEditTime: 2022-06-14 17:51:09
+ * @LastEditTime: 2022-06-15 18:42:04
  * @FilePath: /vue2/demo/patch2/patch2.md
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
@@ -124,6 +124,157 @@ function patchVnode() {
     // 文本节点，直接替换文本内容
     nodeOps.setTextContent(elm, vnode.text);
   }
+
   // ... 省略
 }
 ```
+
+#### vnode 是文本节点
+
+文本节点
+
+```javascript
+  {
+    tag: undefined
+    text: " hello ",
+    isStatic: false
+    ...// 省略
+  }
+```
+
+遇到新节点是文本，只需判断是否发生变化，发生变化直接在 DOM 上修改文本内容
+
+```javascript
+if (isUndef(vnode.text)) {
+  // ...
+} else if (oldVnode.text !== vnode.text) {
+  // 文本节点，直接替换文本内容
+  nodeOps.setTextContent(elm, vnode.text);
+}
+```
+从代码可以看出，分两种情况
+1. 是非文本节点
+2. 是文本节点且新旧节点不等
+
+#### vnode 不是文本节点
+
+```javascript
+  {
+    tag: 'div',
+    text: undefined,
+    chidlren: [Vnode,Vnode]
+  }
+```
+
+当 vnode 不是文本节点时，有以下几种情况
+
+```javascript
+if (isUndef(vnode.text)) {
+  // 非文本节点
+  if (isDef(oldCh) && isDef(ch)) {
+    // 旧vnode与新vnode都有children,并且不相等
+    if (oldCh !== ch)
+      updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly);
+  } else if (isDef(ch)) {
+    // 新vnode存在children，旧vnode没有children
+    if (process.env.NODE_ENV !== "production") {
+      checkDuplicateKeys(ch);
+    }
+    // 旧vnode是文本节点，直接清空文本
+    if (isDef(oldVnode.text)) nodeOps.setTextContent(elm, "");
+    // 新增节点
+    addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue);
+  } else if (isDef(oldCh)) {
+    // 新vnode不存在children, 旧vnode存在children
+    // 移除所有旧vnode的children
+    removeVnodes(oldCh, 0, oldCh.length - 1);
+  } else if (isDef(oldVnode.text)) {
+    // 旧vnode是文本节点,就清空文本
+    nodeOps.setTextContent(elm, "");
+  }
+} else if (oldVnode.text !== vnode.text) {
+  // ....
+}
+```
+
+可以看出来，有几种情况
+
+1. 新旧节点都有 children
+2. 新节点有 children,旧节点没有
+3. 旧节点有 children,新节点没有
+4. 新旧节点都没有 children，而且旧节点是文本节点
+
+
+
+##### 新节点有children,旧节点没有
+
+很明显这种情况就是新增节点，让我们看看它的处理方式
+
+```javascript
+else if (isDef(ch)) {
+  // 旧vnode是文本节点，直接清空文本
+  if (isDef(oldVnode.text)) nodeOps.setTextContent(elm, "");
+  // 新增节点
+  addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue);
+}
+```
+
+如果旧节点是文本节点，先对其置空，然后调用`addVnodes`来创建新的节点
+
+##### 旧节点有children,新节点没有
+
+那既然有新增，那肯定有删除的时候，那到底什么时候会删除呢，那就是"旧有新无“的情况
+
+```javascript
+ else if (isDef(oldCh)) {
+      // 新vnode不存在children, 旧vnode存在children
+      // 移除所有旧vnode的children
+      removeVnodes(oldCh, 0, oldCh.length - 1);
+    }
+```
+代码很短，直接调用`removeVnodes`对children整个进行移除，从0到最后一个节点
+
+
+##### 都没有children，新节点不是文本，旧节点是文本节点
+```html
+   <!-- 旧 -->
+   <h5>hello</h5>
+  <!-- 新 -->
+  <h5></h5>
+```
+```javascript
+  {
+    tag: 'h5',
+    children: undefined,
+    text: 'hello'
+  }
+  {
+    tag: 'h5',
+    children: undefined,
+    text: undefined
+  }
+```
+很明显，原先有的文本，现在没有了，那肯定要删除了。
+
+
+
+##### 新旧节点都有 children
+
+当出现新旧节点都存在 children 时，若引用不一样，就会调用`updateChildren`,
+从名字可以猜出来，这个函数是用来出来 vnode 的 children 的
+
+```javascript
+if (isDef(oldCh) && isDef(ch)) {
+  // 旧vnode与新vnode都有children,并且不相等
+  if (oldCh !== ch)
+    updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly);
+}
+```
+
+如果新旧 children 引用不一致，执行更新子节点的逻辑
+
+###### updateChildren
+这个函数就对新旧children进行diff，处理逻辑可以大概理解为有相同的节点对其进行移动，如果新有旧没有，就代表要新增，反之则就是删除
+
+diff的算法其实有三种，有优先级
+1. 第一种  快捷查找

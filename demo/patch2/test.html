@@ -2,7 +2,7 @@
  * @Author: liangtengfeng liangtengfeng@meizu.com
  * @Date: 2022-06-14 11:23:09
  * @LastEditors: liangtengfeng liangtengfeng@meizu.com
- * @LastEditTime: 2022-06-14 15:18:22
+ * @LastEditTime: 2022-06-15 17:52:53
  * @FilePath: /vue2/demo/patch2/test.html
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
@@ -20,26 +20,48 @@
   <div id="app"></div>
   <script>
 
-    let config = {
-      comments: true,
+    // let config = {
+    //   comments: true,
+    //   el: "#app",
+    //   components: {
+    //     'async-example': function (resolve, reject) {
+    //       setTimeout(function () {
+    //         // 向 `resolve` 回调传递组件定义
+    //         resolve({
+    //           template: '<div>I am async!</div>'
+    //         })
+    //       }, 100000)
+    //     }
+    //   },
+    //   template: `<div><!-- hello --><span>1</span><async-example/></div>`,
+    //   data: function () {
+    //     return {
+    //       message: 1
+    //     }
+    //   }
+
+    // }
+    const config = {
       el: "#app",
-      components: {
-        'async-example': function (resolve, reject) {
-          setTimeout(function () {
-            // 向 `resolve` 回调传递组件定义
-            resolve({
-              template: '<div>I am async!</div>'
-            })
-          }, 100000)
+      template: `<div><ul><li v-for="item in list" :key="item">{{item}}</li></ul><button @click="change">改变</button><section :id="list.length"><h6><p>静态节点</p></h6></section><h5></h5></div>`,
+      data: function(){
+        return {
+           list: [1,2,3,4]
         }
       },
-      template: `<div><!-- hello --><span>1</span><async-example/></div>`,
-      data: function () {
-        return {
-          message: 1
+      methods: {
+         shuffle(arr) {
+            let i = arr.length;
+            while (i) {
+                let j = Math.floor(Math.random() * i--);
+                [arr[j], arr[i]] = [arr[i], arr[j]];
+            }
+        },
+        change(){
+          //this.shuffle(this.list);
+          this.$forceUpdate()
         }
       }
-
     }
     new Vue(config)
   </script>

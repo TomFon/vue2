@@ -85,6 +85,7 @@ export function _createElement (
       )
     }
   }
+  console.log(tag,children,'chidlren')
   // support single function children as default scoped slot
   // 插槽专用
   if (Array.isArray(children) &&
