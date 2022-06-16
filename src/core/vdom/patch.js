@@ -479,6 +479,7 @@ export function createPatchFunction (backend) {
     }
     // 只有 旧开下标小于等于旧结束下标 并且 新开下标少于等于新结束下标
     while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
+      console.log('index')
       if (isUndef(oldStartVnode)) {
         // 跳过因位移导致undefine 
         oldStartVnode = oldCh[++oldStartIdx] // Vnode has been moved left
@@ -512,6 +513,7 @@ export function createPatchFunction (backend) {
         idxInOld = isDef(newStartVnode.key)
           ? oldKeyToIdx[newStartVnode.key]
           : findIdxInOld(newStartVnode, oldCh, oldStartIdx, oldEndIdx)
+          console.log(oldKeyToIdx,'oldKeyToIdx')
         if (isUndef(idxInOld)) { // New element 旧ch都没有，代表是新增的
           createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm, false, newCh, newStartIdx)
         } else {

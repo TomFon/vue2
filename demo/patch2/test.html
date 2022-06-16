@@ -2,7 +2,7 @@
  * @Author: liangtengfeng liangtengfeng@meizu.com
  * @Date: 2022-06-14 11:23:09
  * @LastEditors: liangtengfeng liangtengfeng@meizu.com
- * @LastEditTime: 2022-06-15 17:52:53
+ * @LastEditTime: 2022-06-16 17:10:14
  * @FilePath: /vue2/demo/patch2/test.html
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
@@ -41,6 +41,10 @@
     //   }
 
     // }
+    // 3 4
+    // 3 3
+    // 2 1
+    // 1 2
     const config = {
       el: "#app",
       template: `<div><ul><li v-for="item in list" :key="item">{{item}}</li></ul><button @click="change">改变</button><section :id="list.length"><h6><p>静态节点</p></h6></section><h5></h5></div>`,
@@ -58,7 +62,7 @@
             }
         },
         change(){
-          //this.shuffle(this.list);
+          this.shuffle(this.list);
           this.$forceUpdate()
         }
       }
