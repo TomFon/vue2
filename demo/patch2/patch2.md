@@ -692,10 +692,16 @@ if (oldStartIdx > oldEndIdx) {
 
 - 新旧 children 都遍历完
   无事发生，不需要另外处理
-- 旧children遍历完，新children有剩余
-  把新children剩余没有遍历的节点，通过`addVnodes`来创建节点
+- 旧 children 遍历完，新 children 有剩余
+  把新 children 剩余没有遍历的节点，通过`addVnodes`来创建节点
   ![](./addVnode.png);
 
-- 新 children 遍历完，旧children有剩余
+- 新 children 遍历完，旧 children 有剩余
   调用`removeVnodes`移除多余节点
   ![](./removeVnode.png);
+
+  1. https://juejin.cn/post/6892671384976097287
+  2. https://www.csdn.net/tags/NtTaQg5sNTk1NzgtYmxvZwO0O0OO0O0O.html
+  3. https://jishuin.proginn.com/p/763bfbd4ec42
+  4. https://www.jianshu.com/p/bff70b786bb6
+  5. https://www.cnblogs.com/mengfangui/p/9984135.html
