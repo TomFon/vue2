@@ -2,7 +2,7 @@
  * @Author: liangtengfeng liangtengfeng@meizu.com
  * @Date: 2022-06-14 11:23:01
  * @LastEditors: liangtengfeng liangtengfeng@meizu.com
- * @LastEditTime: 2022-06-16 19:02:17
+ * @LastEditTime: 2022-06-16 19:13:33
  * @FilePath: /vue2/demo/patch2/patch2.md
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
@@ -692,10 +692,10 @@ if (oldStartIdx > oldEndIdx) {
 
 - 新旧 children 都遍历完
   无事发生，不需要另外处理
-- 旧children遍历完
+- 旧children遍历完，新children有剩余
   把新children剩余没有遍历的节点，通过`addVnodes`来创建节点
   ![](./addVnode.png);
 
-- 新 children 遍历完
+- 新 children 遍历完，旧children有剩余
   调用`removeVnodes`移除多余节点
   ![](./removeVnode.png);

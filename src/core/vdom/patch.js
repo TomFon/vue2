@@ -532,6 +532,7 @@ export function createPatchFunction (backend) {
           }
         }
         newStartVnode = newCh[++newStartIdx]
+        undefined
       }
     }
     if (oldStartIdx > oldEndIdx) {
