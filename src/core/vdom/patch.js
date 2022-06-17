@@ -793,7 +793,7 @@ export function createPatchFunction (backend) {
   }
 
   return function patch (oldVnode, vnode, hydrating, removeOnly) {
-    console.log('patch start',vnode,'-----------')
+    console.log('patch start','----vnode---',vnode,'--oldVnode--',oldVnode)
     // 1. 新vnode不存在，旧vnode存在，即删除
     // 2. 新vnode存在，旧vnode不存在，即新增
     // 3. 新旧vnode都存在，旧vnode不是真实的元素且新旧vnode是同一vnode，表示 修改（更新） 。

@@ -2,7 +2,7 @@
  * @Author: liangtengfeng liangtengfeng@meizu.com
  * @Date: 2022-06-14 11:23:01
  * @LastEditors: liangtengfeng liangtengfeng@meizu.com
- * @LastEditTime: 2022-06-16 19:13:33
+ * @LastEditTime: 2022-06-17 17:19:56
  * @FilePath: /vue2/demo/patch2/patch2.md
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
@@ -80,7 +80,60 @@ function patch(oldVnode, vnode) {
 
 移除，新增，上次分享也提及过，本次主要是讲解`修改`，`patchVnode`过程，也即是我们平常所说的`diff`算法
 
-## diff 过程
+## diff
+### 传统方式 
+传统两个树的diff时间复杂度为[O(n^3)](https://github.com/Advanced-Frontend/Daily-Interview-Question/issues/151),
+[A survey on tree edit distance and related problems](https://grfia.dlsi.ua.es/ml/algorithms/references/editsurvey_bille.pdf)
+> 时间复杂性，又称时间复杂度，算法的时间复杂度是一个函数，它定性描述该算法的运行时间。这是一个代表算法输入值的字符串的长度的函数
+
+
+```javascript
+        Prev                  Last
+          A                     A  
+         / \                   / \
+        /   \                 /   \
+       B     D     ====>     D     B
+      /                             \
+     C                               C
+
+
+  oA => nA
+  oA => nB
+  oA => nD
+  oA => nC
+  ...
+  oC => nC
+ 
+```
+可以简单理解为：查找不同需要O(n^2)
+找到差异后还要计算最小转换方式，最终结果为O(n^3)
+
+### vue的优化方式
+vue在diff上做优化“放弃了最优解“，本质上是一种权衡，有利有弊。
+在前端中很少跨层地移动DOM元素,于是有以下的优化
+
+- 只在同一层对比VDOM的变化
+- 检测VDOM的变化依赖用户指定的key
+
+会遇到两种问题
+- 变化发生在不同层就会检测不到
+- 不同元素用户指定同样的key
+
+但是vue认为，第一种的问题的概率很小，第二种通过提示给开发者赋给不同值，这两种方式可以解决问题
+
+#### 同层比较
+
+ ![](./vueDiff.png);
+
+根节点A同会跟同一层对比，第二层也一样只等第二层对比等等
+
+#### 深度优先算法
+> 深度优先搜索算法（英语：Depth-First-Search，DFS）是一种用于遍历或搜索树或图的算法。这个算法会尽可能深地搜索树的分支。当节点v的所在边都己被探寻过，搜索将回溯到发现节点v的那条边的起始节点。这一过程一直进行到已发现从源节点可达的所有节点为止。如果还存在未被发现的节点，则选择其中一个作为源节点并重复以上过程，整个进程反复进行直到所有节点都被访问为止。
+
+[深度优先搜索（DFS）和广度优先搜索（BFS）](https://www.jianshu.com/p/bff70b786bb6)
+
+看上图，执行顺序是 A-B-D-C-E,
+
 
 ### patchVnode
 
@@ -700,8 +753,10 @@ if (oldStartIdx > oldEndIdx) {
   调用`removeVnodes`移除多余节点
   ![](./removeVnode.png);
 
-  1. https://juejin.cn/post/6892671384976097287
-  2. https://www.csdn.net/tags/NtTaQg5sNTk1NzgtYmxvZwO0O0OO0O0O.html
-  3. https://jishuin.proginn.com/p/763bfbd4ec42
-  4. https://www.jianshu.com/p/bff70b786bb6
-  5. https://www.cnblogs.com/mengfangui/p/9984135.html
+
+
+
+### 总结
+1.能不移动，就不移动
+2.没找到，只好移动
+3.移动也解决不了，就新建或者删除
